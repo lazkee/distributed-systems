@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, request
 
+from app.middlewares.require_internal import require_internal
 from app.validators.create_quiz_validator import validate_create_quiz
 from app.validators.edit_quiz_validator import validate_edit_quiz
 from app.validators.reject_quiz_validator import validate_reject_quiz
@@ -9,6 +10,7 @@ quiz_bp = Blueprint("quiz", __name__, url_prefix="/quiz")
 
 
 @quiz_bp.route("/<int:quiz_id>", methods=["GET"])
+@require_internal
 def get_quiz(quiz_id: int):
     try:
         quiz_data = QuizService.get_quiz(quiz_id)
@@ -29,6 +31,7 @@ def get_quiz(quiz_id: int):
 
 
 @quiz_bp.get("/catalog")
+@require_internal
 def get_catalog():
     try:
         page = request.args.get("page", 1, type=int)

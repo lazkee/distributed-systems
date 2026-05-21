@@ -1,5 +1,6 @@
 from multiprocessing import Process
 from flask import Blueprint, jsonify, request
+from app.middlewares.require_internal import require_internal
 from ..services.quiz_mail_service import QuizMailService
 from ..services.quiz_pdf_service import PDFService
 from ..services.quiz_service import QuizService
@@ -8,6 +9,7 @@ from ..services.quiz_attempts_service import AttemptsService
 quiz_mail_bp = Blueprint("quiz_mail", __name__, url_prefix="/quiz-mail")
 
 @quiz_mail_bp.route("/reports", methods=["POST"])
+@require_internal
 def generate_report():
 
     data = request.get_json()

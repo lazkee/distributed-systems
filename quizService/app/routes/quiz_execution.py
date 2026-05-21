@@ -1,5 +1,6 @@
 from threading import Thread
 from flask import Blueprint, current_app, request, jsonify
+from app.middlewares.require_internal import require_internal
 from app.services.quiz_execution_service import QuizExecutionService
 
 quiz_execution_bp = Blueprint(
@@ -10,6 +11,7 @@ quiz_execution_bp = Blueprint(
 
 
 @quiz_execution_bp.route("/start", methods=["POST"])
+@require_internal
 def start_quiz():
     data = request.get_json()
 
@@ -26,6 +28,7 @@ def start_quiz():
 
 
 @quiz_execution_bp.route("/answer", methods=["POST"])
+@require_internal
 def submit_answer():
     data = request.get_json()
 
@@ -51,6 +54,7 @@ def finish_quiz_background(attempt_id, player_email, app):
 
 
 @quiz_execution_bp.route("/finish", methods=["POST"])
+@require_internal
 def finish_quiz():
     data = request.get_json()
 

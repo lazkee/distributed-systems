@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, request
 
+from app.middlewares.require_internal import require_internal
 from app.validators.reject_quiz_validator import validate_reject_quiz
 from  app.services.quiz_admin_service import QuizAdminService
 
@@ -7,6 +8,7 @@ quiz_admin_bp = Blueprint("quiz_admin", __name__, url_prefix="/quiz")
 
 
 @quiz_admin_bp.get("/getApproved")
+@require_internal
 def get_approved():
     try:
         quizzes = QuizAdminService.get_approved()
@@ -22,6 +24,7 @@ def get_approved():
 
 
 @quiz_admin_bp.get("/getPending")
+@require_internal
 def get_pending():
     try:
         quizzes = QuizAdminService.get_pending()
@@ -37,6 +40,7 @@ def get_pending():
 
 
 @quiz_admin_bp.route("/admin/<int:quiz_id>", methods=["GET"])
+@require_internal
 def get_quiz_for_admin(quiz_id: int):
     try:
         quiz = QuizAdminService.get_quiz_for_admin(quiz_id)
@@ -57,6 +61,7 @@ def get_quiz_for_admin(quiz_id: int):
 
 
 @quiz_admin_bp.route("/admin/<int:quiz_id>/approve", methods=["PUT"])
+@require_internal
 def approve_quiz(quiz_id: int):
     try:
         result = QuizAdminService.approve_quiz(quiz_id)
@@ -81,6 +86,7 @@ def approve_quiz(quiz_id: int):
 
 
 @quiz_admin_bp.route("/admin/<int:quiz_id>/reject", methods=["PUT"])
+@require_internal
 def reject_quiz(quiz_id: int):
     payload = request.get_json(silent=True)
 
@@ -115,6 +121,7 @@ def reject_quiz(quiz_id: int):
 
 
 @quiz_admin_bp.route("/delete/<int:quiz_id>", methods=["DELETE"])
+@require_internal
 def delete_quiz(quiz_id):
     try:
         result = QuizAdminService.delete_quiz(quiz_id)

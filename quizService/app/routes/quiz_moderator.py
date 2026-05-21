@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, request
 
+from app.middlewares.require_internal import require_internal
 from app.validators.create_quiz_validator import validate_create_quiz
 from app.validators.edit_quiz_validator import validate_edit_quiz
 from app.services.quiz_moderator_service import QuizModeratorService
@@ -8,6 +9,7 @@ quiz_moderator_bp = Blueprint("quiz_moderator", __name__, url_prefix="/quiz")
 
 
 @quiz_moderator_bp.post("")
+@require_internal
 def create_quiz():
     payload = request.get_json(silent=True)
 
@@ -40,6 +42,7 @@ def create_quiz():
 
 
 @quiz_moderator_bp.get("/my/<int:user_id>")
+@require_internal
 def get_my_quizzes(user_id: int):
     try:
         quizzes = QuizModeratorService.get_by_author(user_id)
@@ -55,6 +58,7 @@ def get_my_quizzes(user_id: int):
 
 
 @quiz_moderator_bp.route("/getRejected/<int:quiz_id>", methods=["GET"])
+@require_internal
 def get_rejected_quiz(quiz_id: int):
     try:
         quiz = QuizModeratorService.get_rejected_quiz_for_edit(quiz_id)
@@ -75,6 +79,7 @@ def get_rejected_quiz(quiz_id: int):
 
 
 @quiz_moderator_bp.route("/edit/<int:quiz_id>", methods=["PUT"])
+@require_internal
 def edit_quiz(quiz_id: int):
     payload = request.get_json(silent=True)
 
