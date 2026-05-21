@@ -25,10 +25,7 @@ def create_app():
 
     CORS(
         app,
-        resources={r"/*": {"origins": [
-            "http://localhost:5173",
-            "http://127.0.0.1:5173"
-        ]}},
+        resources={r"/*": {"origins": Config.FRONTEND_ORIGINS}},
         supports_credentials=True,
         methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
         allow_headers=["Content-Type", "Authorization"]
@@ -37,7 +34,7 @@ def create_app():
 
     db.init_app(app)
     jwt.init_app(app)
-    socketio.init_app(app, cors_allowed_origins="*")
+    socketio.init_app(app, cors_allowed_origins=Config.FRONTEND_ORIGINS)
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(admin_bp)

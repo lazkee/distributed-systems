@@ -25,8 +25,7 @@ class Config:
     CLOUDINARY_API_SECRET = os.getenv("CLOUDINARY_API_SECRET")
 
     QUIZ_SERVICE_BASE_URL = os.getenv(
-        "QUIZ_SERVICE_BASE_URL",
-        "http://127.0.0.1:8001"
+        "QUIZ_SERVICE_BASE_URL"
     )
 
     MAILJET_API_KEY = os.getenv("MAILJET_API_KEY")
@@ -36,3 +35,11 @@ class Config:
     MAILJET_URL = os.getenv("MAILJET_URL")
 
     INTERNAL_SERVICE_SECRET = os.getenv("INTERNAL_SERVICE_SECRET", "")
+
+    FRONTEND_ORIGINS = [
+        origin.strip()
+        for origin in os.getenv(
+            "FRONTEND_ORIGINS"
+        ).split(",")
+        if origin.strip()
+    ]
