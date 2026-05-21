@@ -7,6 +7,25 @@ venv/
 instance/
 *.log
 
+
+# Environment files
+.env
+.env.*
+server/.env
+server/.env.*
+quizService/.env
+quizService/.env.*
+client/.env
+client/.env.*
+
+# Keep examples tracked
+!.env.example
+!server/.env.example
+!quizService/.env.example
+!client/.env.example
+EOF
+
+
 # ====================
 # Node / React (client)
 # ====================
