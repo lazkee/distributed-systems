@@ -67,7 +67,7 @@ class QuizModeratorService:
 
 
     @staticmethod
-    def get_rejected_quiz_for_edit(quiz_id: int) -> Dict:
+    def get_rejected_quiz_for_edit(quiz_id: int, requester_id: int) -> Dict:
         quiz = Quiz.query.get(quiz_id)
 
         if not quiz:
@@ -76,6 +76,9 @@ class QuizModeratorService:
         if quiz.status != QuizStatus.REJECTED.value:
             raise ValueError("Quiz is not rejected and cannot be edited")
 
+        if quiz.author_id != requester_id:
+            raise PermissionError("Access forbidden")
+
         dto = QuizService.quiz_to_dto(quiz)
         dto["admin_comment"] = quiz.rejection_reason
 
@@ -83,7 +86,7 @@ class QuizModeratorService:
 
 
     @staticmethod
-    def edit_quiz(quiz_id: int, data: Dict) -> Dict:
+    def edit_quiz(quiz_id: int, data: Dict, requester_id: int) -> Dict:
         quiz = Quiz.query.get(quiz_id)
 
         if not quiz:
@@ -91,6 +94,9 @@ class QuizModeratorService:
 
         if quiz.status != QuizStatus.REJECTED.value:
             raise ValueError("Only rejected quizzes can be edited")
+
+        if quiz.author_id != requester_id:
+            raise PermissionError("Access forbidden")
 
         quiz.title = data.get("title", quiz.title)
         quiz.duration_seconds = data.get("duration", quiz.duration_seconds)

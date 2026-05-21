@@ -55,6 +55,18 @@ def create_quiz():
 @quiz_moderator_bp.get("/my/<int:user_id>")
 @require_internal
 def get_my_quizzes(user_id: int):
+    user_id_header = request.headers.get("X-User-Id")
+    if not user_id_header:
+        return jsonify({"success": False, "message": "Unauthorized"}), 401
+
+    try:
+        requester_id = int(user_id_header)
+    except ValueError:
+        return jsonify({"success": False, "message": "Unauthorized"}), 401
+
+    if requester_id != user_id:
+        return jsonify({"success": False, "message": "Forbidden"}), 403
+
     try:
         quizzes = QuizModeratorService.get_by_author(user_id)
         return jsonify({
@@ -71,12 +83,26 @@ def get_my_quizzes(user_id: int):
 @quiz_moderator_bp.route("/getRejected/<int:quiz_id>", methods=["GET"])
 @require_internal
 def get_rejected_quiz(quiz_id: int):
+    user_id_header = request.headers.get("X-User-Id")
+    if not user_id_header:
+        return jsonify({"success": False, "message": "Unauthorized"}), 401
+
     try:
-        quiz = QuizModeratorService.get_rejected_quiz_for_edit(quiz_id)
+        requester_id = int(user_id_header)
+    except ValueError:
+        return jsonify({"success": False, "message": "Unauthorized"}), 401
+
+    try:
+        quiz = QuizModeratorService.get_rejected_quiz_for_edit(quiz_id, requester_id)
         return jsonify({
             "success": True,
             "data": quiz
         }), 200
+    except PermissionError as e:
+        return jsonify({
+            "success": False,
+            "message": str(e)
+        }), 403
     except ValueError as e:
         return jsonify({
             "success": False,
@@ -92,6 +118,15 @@ def get_rejected_quiz(quiz_id: int):
 @quiz_moderator_bp.route("/edit/<int:quiz_id>", methods=["PUT"])
 @require_internal
 def edit_quiz(quiz_id: int):
+    user_id_header = request.headers.get("X-User-Id")
+    if not user_id_header:
+        return jsonify({"success": False, "message": "Unauthorized"}), 401
+
+    try:
+        requester_id = int(user_id_header)
+    except ValueError:
+        return jsonify({"success": False, "message": "Unauthorized"}), 401
+
     payload = request.get_json(silent=True)
 
     validation = validate_edit_quiz(payload)
@@ -109,12 +144,18 @@ def edit_quiz(quiz_id: int):
         }), 400
 
     try:
-        result = QuizModeratorService.edit_quiz(quiz_id, payload)
+        result = QuizModeratorService.edit_quiz(quiz_id, payload, requester_id)
         return jsonify({
             "success": True,
             "message": "Quiz updated successfully",
             "data": result
         }), 200
+
+    except PermissionError as e:
+        return jsonify({
+            "success": False,
+            "message": str(e)
+        }), 403
 
     except ValueError as e:
         return jsonify({
