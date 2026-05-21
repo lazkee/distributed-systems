@@ -34,3 +34,5 @@ class Config:
     MAILJET_FROM_EMAIL = os.getenv("MAILJET_FROM_EMAIL")
     MAILJET_FROM_NAME = os.getenv("MAILJET_FROM_NAME")
     MAILJET_URL = os.getenv("MAILJET_URL")
+
+    INTERNAL_SERVICE_SECRET = os.getenv("INTERNAL_SERVICE_SECRET", "")
