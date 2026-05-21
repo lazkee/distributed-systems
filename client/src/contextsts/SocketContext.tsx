@@ -5,26 +5,29 @@ import { useAuth } from "../hooks/UseAuthHook";
 const SocketContext = createContext(socket);
 
 export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
-    const { user } = useAuth();
+    const { user, token } = useAuth();
 
     useEffect(() => {
-        if (!user) return;
+        if (!user || !token) {
+            if (socket.connected) {
+                socket.disconnect();
+            }
+            return;
+        }
 
         const handleConnect = () => {
-            console.log("SOCKET CONNECTED");
-
             if (user.role === "Admin") {
-                console.log(" Joining admins room");
                 socket.emit("join", "admins");
             }
 
             if (user.role === "Moderator") {
-                console.log(" Joining moderator room");
                 socket.emit("join", `user_${user.id}`);
             }
         };
 
         socket.on("connect", handleConnect);
+
+        socket.auth = { token };
 
         if (!socket.connected) {
             socket.connect();
@@ -32,8 +35,9 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
 
         return () => {
             socket.off("connect", handleConnect);
+            socket.disconnect();
         };
-    }, [user]);
+    }, [user, token]);
 
     return (
         <SocketContext.Provider value={socket}>
