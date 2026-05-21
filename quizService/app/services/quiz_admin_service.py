@@ -65,7 +65,7 @@ class QuizAdminService:
 
 
     @staticmethod
-    def delete_quiz(quiz_id: int):
+    def delete_quiz(quiz_id: int, requester_id: int, is_admin: bool):
         quiz = Quiz.query.get(quiz_id)
 
         if not quiz:
@@ -74,6 +74,8 @@ class QuizAdminService:
                 "message": "Quiz not found"
             }
 
+        if not is_admin and quiz.author_id != requester_id:
+            raise PermissionError("Access forbidden")
 
         db.session.delete(quiz)
         db.session.commit()

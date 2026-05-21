@@ -123,13 +123,34 @@ def reject_quiz(quiz_id: int):
 @quiz_admin_bp.route("/delete/<int:quiz_id>", methods=["DELETE"])
 @require_internal
 def delete_quiz(quiz_id):
+    user_id_header = request.headers.get("X-User-Id")
+    if not user_id_header:
+        return jsonify({"success": False, "message": "Unauthorized"}), 401
+
+    role_header = request.headers.get("X-User-Role")
+    if not role_header:
+        return jsonify({"success": False, "message": "Unauthorized"}), 401
+
     try:
-        result = QuizAdminService.delete_quiz(quiz_id)
+        requester_id = int(user_id_header)
+    except ValueError:
+        return jsonify({"success": False, "message": "Unauthorized"}), 401
+
+    is_admin = role_header == "Admin"
+
+    try:
+        result = QuizAdminService.delete_quiz(quiz_id, requester_id, is_admin)
 
         if not result["success"]:
             return jsonify(result), 404
 
         return jsonify(result), 200
+
+    except PermissionError as e:
+        return jsonify({
+            "success": False,
+            "message": str(e)
+        }), 403
 
     except Exception as e:
         return jsonify({
