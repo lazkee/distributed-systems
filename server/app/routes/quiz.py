@@ -27,9 +27,12 @@ def create_quiz():
                 "message": "Forbidden"
             }), 403
 
+        payload = dict(request.get_json(silent=True) or {})
+        payload.pop("author_id", None)
+
         response = requests.post(
             QUIZ_SERVICE_BASE_URL,
-            json=request.json,
+            json=payload,
             headers=make_internal_headers(
                 user_id=get_jwt_identity(),
                 user_role=get_jwt().get("role"),

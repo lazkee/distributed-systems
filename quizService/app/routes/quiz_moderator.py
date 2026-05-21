@@ -11,7 +11,18 @@ quiz_moderator_bp = Blueprint("quiz_moderator", __name__, url_prefix="/quiz")
 @quiz_moderator_bp.post("")
 @require_internal
 def create_quiz():
+    user_id_header = request.headers.get("X-User-Id")
+    if not user_id_header:
+        return jsonify({"success": False, "message": "Unauthorized"}), 401
+
+    try:
+        requester_id = int(user_id_header)
+    except ValueError:
+        return jsonify({"success": False, "message": "Unauthorized"}), 401
+
     payload = request.get_json(silent=True)
+    if isinstance(payload, dict):
+        payload["author_id"] = requester_id
 
     validation = validate_create_quiz(payload)
     if not validation.ok:
