@@ -7,6 +7,7 @@ from app.constants.user_roles import UserRole
 from app.services.mail_service import MailService
 from ..config import Config
 import requests
+from app.utils.internal_headers import make_internal_headers
 
 class AdminService:
 
@@ -64,7 +65,7 @@ class AdminService:
             "users": users
         }
 
-        response = requests.post(url, json=payload)
+        response = requests.post(url, json=payload, headers=make_internal_headers())
 
         if response.status_code != 202:
             raise Exception(f"Failed to generate report: {response.text}")

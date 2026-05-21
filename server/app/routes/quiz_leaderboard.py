@@ -5,7 +5,8 @@ import requests
 from app.extensions import socketio
 from app.constants.user_roles import UserRole
 from app.middlewares.require_auth import require_auth
-from app.middlewares.require_role import require_role 
+from app.middlewares.require_role import require_role
+from app.utils.internal_headers import make_internal_headers
 from app.services.quiz_service import QuizService
 from app.services.user_service import UserService
 
@@ -17,7 +18,7 @@ QUIZ_SERVICE_BASE_URL = f"{base}/quiz"
 def get_leaderboard(quiz_id: int):
     try:
         url = f"{QUIZ_SERVICE_BASE_URL}/{quiz_id}/leaderboard"
-        resp = requests.get(url, timeout=20)
+        resp = requests.get(url, headers=make_internal_headers(), timeout=20)
 
         payload = resp.json()
 

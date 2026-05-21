@@ -5,6 +5,7 @@ import os
 
 from app.middlewares.require_role import require_role
 from app.constants.user_roles import UserRole
+from app.utils.internal_headers import make_internal_headers
 
 quiz_execution_bp = Blueprint(
     "quiz_execution",
@@ -38,6 +39,10 @@ def start_quiz():
         response = requests.post(
             f"{QUIZ_SERVICE_BASE_URL}/start",
             json=payload,
+            headers=make_internal_headers(
+                user_id=get_jwt_identity(),
+                user_role=get_jwt().get("role"),
+            ),
             timeout=10
         )
         return jsonify(response.json()), response.status_code
@@ -80,6 +85,10 @@ def submit_answer():
         response = requests.post(
             f"{QUIZ_SERVICE_BASE_URL}/answer",
             json=payload,
+            headers=make_internal_headers(
+                user_id=get_jwt_identity(),
+                user_role=get_jwt().get("role"),
+            ),
             timeout=10
         )
         return jsonify(response.json()), response.status_code
@@ -122,6 +131,10 @@ def finish_quiz():
         response = requests.post(
             f"{QUIZ_SERVICE_BASE_URL}/finish",
             json=payload,
+            headers=make_internal_headers(
+                user_id=get_jwt_identity(),
+                user_role=get_jwt().get("role"),
+            ),
             timeout=10
         )
         return jsonify(response.json()), response.status_code

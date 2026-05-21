@@ -5,7 +5,8 @@ import requests
 from app.extensions import socketio
 from app.constants.user_roles import UserRole
 from app.middlewares.require_auth import require_auth
-from app.middlewares.require_role import require_role 
+from app.middlewares.require_role import require_role
+from app.utils.internal_headers import make_internal_headers
 from app.services.quiz_service import QuizService
 from app.services.user_service import UserService
 from app.cache.quiz_cache import QuizCache
@@ -29,6 +30,10 @@ def create_quiz():
         response = requests.post(
             QUIZ_SERVICE_BASE_URL,
             json=request.json,
+            headers=make_internal_headers(
+                user_id=get_jwt_identity(),
+                user_role=get_jwt().get("role"),
+            ),
             timeout=5
         )
 
@@ -69,6 +74,7 @@ def get_quiz(quiz_id: int):
     try:
         response = requests.get(
             f"{QUIZ_SERVICE_BASE_URL}/{quiz_id}",
+            headers=make_internal_headers(),
             timeout=10
         )
         return jsonify(response.json()), response.status_code
@@ -179,6 +185,10 @@ def get_quiz_for_admin(quiz_id: int):
     try:
         response = requests.get(
             f"{QUIZ_SERVICE_BASE_URL}/admin/{quiz_id}",
+            headers=make_internal_headers(
+                user_id=get_jwt_identity(),
+                user_role=get_jwt().get("role"),
+            ),
             timeout=10
         )
 
@@ -199,6 +209,10 @@ def approve_quiz(quiz_id):
         response = requests.put(
             f"{QUIZ_SERVICE_BASE_URL}/admin/{quiz_id}/approve",
             json=request.json,
+            headers=make_internal_headers(
+                user_id=get_jwt_identity(),
+                user_role=get_jwt().get("role"),
+            ),
             timeout=5
         )
 
@@ -227,6 +241,10 @@ def reject_quiz(quiz_id):
         response = requests.put(
             f"{QUIZ_SERVICE_BASE_URL}/admin/{quiz_id}/reject",
             json=data,
+            headers=make_internal_headers(
+                user_id=get_jwt_identity(),
+                user_role=get_jwt().get("role"),
+            ),
             timeout=5
         )
         quiz_data = response.json()
@@ -267,6 +285,10 @@ def delete_quiz(quiz_id):
     try:
         response = requests.delete(
             f"{QUIZ_SERVICE_BASE_URL}/delete/{quiz_id}",
+            headers=make_internal_headers(
+                user_id=get_jwt_identity(),
+                user_role=get_jwt().get("role"),
+            ),
             timeout=5
         )
 
@@ -303,6 +325,10 @@ def get_my_quizzes():
 
         response = requests.get(
             f"{QUIZ_SERVICE_BASE_URL}/my/{user_id}",
+            headers=make_internal_headers(
+                user_id=get_jwt_identity(),
+                user_role=get_jwt().get("role"),
+            ),
             timeout=10
         )
         data = response.json()
@@ -322,6 +348,10 @@ def get_rejected_quiz_for_moderator(quiz_id: int):
     try:
         response = requests.get(
             f"{QUIZ_SERVICE_BASE_URL}/getRejected/{quiz_id}",
+            headers=make_internal_headers(
+                user_id=get_jwt_identity(),
+                user_role=get_jwt().get("role"),
+            ),
             timeout=10
         )
 
@@ -342,6 +372,10 @@ def edit_quiz(quiz_id: int):
         response = requests.put(
             f"{QUIZ_SERVICE_BASE_URL}/edit/{quiz_id}",
             json=request.json,
+            headers=make_internal_headers(
+                user_id=get_jwt_identity(),
+                user_role=get_jwt().get("role"),
+            ),
             timeout=10
         )
         quiz_data = response.json()
