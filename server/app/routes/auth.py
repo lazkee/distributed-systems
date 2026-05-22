@@ -1,5 +1,7 @@
 from flask import Blueprint, request, jsonify
+from flask_jwt_extended import jwt_required, get_jwt
 from app.services.auth_service import AuthService
+from app.services import jwt_blocklist_service
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
@@ -34,3 +36,14 @@ def login():
         response["data"] = result["data"]
 
     return jsonify(response), result["status"]
+
+
+@auth_bp.route("/logout", methods=["POST"])
+@jwt_required()
+def logout():
+    claims = get_jwt()
+    try:
+        jwt_blocklist_service.revoke_token(claims["jti"], claims["exp"])
+    except Exception:
+        return jsonify({"success": False, "message": "Logout failed"}), 503
+    return jsonify({"success": True, "message": "Logged out successfully"}), 200

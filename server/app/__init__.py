@@ -5,6 +5,7 @@ from flask_cors import CORS
 import cloudinary
 
 from .routes.auth import auth_bp
+from .services import jwt_blocklist_service
 from .routes.admin import admin_bp
 from .routes.user import user_bp
 from .routes.quiz import quiz_bp
@@ -35,6 +36,10 @@ def create_app():
     db.init_app(app)
     jwt.init_app(app)
     socketio.init_app(app, cors_allowed_origins=Config.FRONTEND_ORIGINS)
+
+    @jwt.token_in_blocklist_loader
+    def check_if_token_revoked(jwt_header, jwt_payload):
+        return jwt_blocklist_service.is_token_revoked(jwt_payload["jti"])
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(admin_bp)
