@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../hooks/UseAuthHook";
 import { validateRegisterForm } from "../../helpers/ValidateRegisterForm";
+import { SaveValueByKey } from "../../helpers/LocalStorage";
 import type { AuthFormProps } from "../../types/auth/AuthFormProps";
 
 export function RegisterForm({ authApi }: AuthFormProps) {
@@ -52,8 +53,8 @@ export function RegisterForm({ authApi }: AuthFormProps) {
     console.log("Auth result:", authResult);
 
     if (authResult.success && authResult.data) {
-      //console.log(`Auth result data: ${authResult.data}`)
-      login(authResult.data);
+      SaveValueByKey("refreshToken", authResult.data.refresh_token);
+      login(authResult.data.access_token);
     } else {
       setErrorMessage(authResult.message);
       setPassword("");

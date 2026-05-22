@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../hooks/UseAuthHook";
+import { SaveValueByKey } from "../../helpers/LocalStorage";
 import type { AuthFormProps } from "../../types/auth/AuthFormProps";
 
 export function LoginForm({ authApi }: AuthFormProps) {
@@ -14,7 +15,8 @@ export function LoginForm({ authApi }: AuthFormProps) {
 
         const authResult = await authApi.login(email, password);
         if (authResult.success && authResult.data) {
-            login(authResult.data);
+            SaveValueByKey("refreshToken", authResult.data.refresh_token);
+            login(authResult.data.access_token);
         } else {
             setErrorMessage(authResult.message);
             setPassword("");

@@ -83,9 +83,28 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
 
     const logout = () => {
+        const accessToken = ReadValueByKey("authToken");
+        const refreshToken = ReadValueByKey("refreshToken");
+        const apiUrl = import.meta.env.VITE_API_URL;
+
+        if (accessToken) {
+            fetch(`${apiUrl}/auth/logout`, {
+                method: "POST",
+                headers: { Authorization: `Bearer ${accessToken}` },
+            }).catch(() => {});
+        }
+
+        if (refreshToken) {
+            fetch(`${apiUrl}/auth/logout-refresh`, {
+                method: "POST",
+                headers: { Authorization: `Bearer ${refreshToken}` },
+            }).catch(() => {});
+        }
+
         setToken(null);
         setUser(null);
         DeleteValueByKey("authToken");
+        DeleteValueByKey("refreshToken");
     };
 
     const isAuthenticated = !!user && !!token;

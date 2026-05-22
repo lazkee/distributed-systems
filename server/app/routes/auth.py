@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import jwt_required, get_jwt
+from flask_jwt_extended import jwt_required, get_jwt, get_jwt_identity, create_access_token
 from app.services.auth_service import AuthService
 from app.services import jwt_blocklist_service
 
@@ -38,6 +38,22 @@ def login():
     return jsonify(response), result["status"]
 
 
+@auth_bp.route("/refresh", methods=["POST"])
+@jwt_required(refresh=True)
+def refresh():
+    identity = get_jwt_identity()
+    claims = get_jwt()
+    access_token = create_access_token(
+        identity=identity,
+        additional_claims={"email": claims.get("email"), "role": claims.get("role")}
+    )
+    return jsonify({
+        "success": True,
+        "message": "Token refreshed",
+        "data": {"access_token": access_token}
+    }), 200
+
+
 @auth_bp.route("/logout", methods=["POST"])
 @jwt_required()
 def logout():
@@ -47,3 +63,14 @@ def logout():
     except Exception:
         return jsonify({"success": False, "message": "Logout failed"}), 503
     return jsonify({"success": True, "message": "Logged out successfully"}), 200
+
+
+@auth_bp.route("/logout-refresh", methods=["POST"])
+@jwt_required(refresh=True)
+def logout_refresh():
+    claims = get_jwt()
+    try:
+        jwt_blocklist_service.revoke_token(claims["jti"], claims["exp"])
+    except Exception:
+        return jsonify({"success": False, "message": "Logout failed"}), 503
+    return jsonify({"success": True, "message": "Refresh token revoked successfully"}), 200

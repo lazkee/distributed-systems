@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from flask_jwt_extended import create_access_token
+from flask_jwt_extended import create_access_token, create_refresh_token
 
 from app.extensions import db
 from app.models.user import User
@@ -30,12 +30,17 @@ class AuthService:
         db.session.add(user)
         db.session.commit()
 
-        token = create_access_token(
-            identity=str(user.id),  # user ID as string
-            additional_claims={"email": user.email, "role": user.role}
+        claims = {"email": user.email, "role": user.role}
+        access_token = create_access_token(
+            identity=str(user.id),
+            additional_claims=claims
+        )
+        refresh_token = create_refresh_token(
+            identity=str(user.id),
+            additional_claims=claims
         )
 
-        return token
+        return {"access_token": access_token, "refresh_token": refresh_token}
 
 
     @staticmethod
@@ -81,14 +86,19 @@ class AuthService:
         user.blocked_until = None
         db.session.commit()
 
-        token = create_access_token(
-            identity=str(user.id),  # user ID as string
-            additional_claims={"email": user.email, "role": user.role}
+        claims = {"email": user.email, "role": user.role}
+        access_token = create_access_token(
+            identity=str(user.id),
+            additional_claims=claims
+        )
+        refresh_token = create_refresh_token(
+            identity=str(user.id),
+            additional_claims=claims
         )
 
         return {
             "success": True,
             "message": "Login successful",
-            "data": token,
+            "data": {"access_token": access_token, "refresh_token": refresh_token},
             "status": 200
         }
