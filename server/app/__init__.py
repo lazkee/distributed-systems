@@ -39,7 +39,22 @@ def create_app():
 
     @jwt.token_in_blocklist_loader
     def check_if_token_revoked(jwt_header, jwt_payload):
-        return jwt_blocklist_service.is_token_revoked(jwt_payload["jti"])
+        jti = jwt_payload.get("jti")
+        sub = jwt_payload.get("sub")
+        iat = jwt_payload.get("iat")
+
+        if not jti or sub is None or iat is None:
+            return True
+
+        try:
+            user_id = int(sub)
+        except (TypeError, ValueError):
+            return True
+
+        return (
+            jwt_blocklist_service.is_token_revoked(jti)
+            or jwt_blocklist_service.is_token_invalid_for_user(user_id, iat)
+        )
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(admin_bp)

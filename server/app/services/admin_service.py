@@ -5,6 +5,7 @@ from app.models.user import User
 from app.extensions import db
 from app.constants.user_roles import UserRole
 from app.services.mail_service import MailService
+from app.services import jwt_blocklist_service
 from ..config import Config
 import requests
 from app.utils.internal_headers import make_internal_headers
@@ -37,10 +38,21 @@ class AdminService:
         if not user:
             raise ValueError(f"User with ID {user_id} does not exist.")
 
+        if user.role == new_role.value:
+            return user
+
         user.role = new_role.value
+        db.session.flush()
+
+        try:
+            jwt_blocklist_service.invalidate_user_tokens(user_id)
+        except Exception:
+            db.session.rollback()
+            raise RuntimeError("Token invalidation failed")
+
         db.session.commit()
 
-        Process(target=MailService.send_role_change_email, args=(user.email, new_role)).start()     # Starting a separate process
+        Process(target=MailService.send_role_change_email, args=(user.email, new_role)).start()
 
         return user
 

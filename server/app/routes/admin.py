@@ -45,6 +45,8 @@ def change_role():
         }), 200
     except ValueError as e:
         return jsonify({"success": False, "message": str(e)}), 404
+    except RuntimeError:
+        return jsonify({"success": False, "message": "Role change could not be completed"}), 503
 
 
 @admin_bp.delete("/delete-user/<int:user_id>")
