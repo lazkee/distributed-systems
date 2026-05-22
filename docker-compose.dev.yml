@@ -42,12 +42,13 @@ services:
       - "8001"
     volumes:
       - ./quizService:/app
+    env_file:
+      - ./quizService/.env
     environment:
       FLASK_ENV: development
       PORT: 8001
       AUTO_CREATE_TABLES: "true"
       SERVER_URL: "http://server:8000"
-      DATABASE_URL: "mysql+pymysql://root:1234@quiz_db:3306/quiz_db"
     depends_on:
       quiz_db:
         condition: service_healthy
@@ -61,12 +62,13 @@ services:
       - "8000:8000"
     volumes:
       - ./server:/app
+    env_file:
+      - ./server/.env
     environment:
       FLASK_ENV: development
       PORT: 8000
       AUTO_CREATE_TABLES: "true"
       QUIZ_SERVICE_BASE_URL: "http://quizservice:8001"
-      DATABASE_URL: "mysql+pymysql://root:1234@users_db:3306/quiz_users_db"
     depends_on:
       users_db:
         condition: service_healthy

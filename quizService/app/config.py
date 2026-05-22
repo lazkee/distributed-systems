@@ -15,6 +15,7 @@ class Config:
     SECRET_KEY = _require("SECRET_KEY")
 
     DATABASE_URL = _require("DATABASE_URL")
+    SQLALCHEMY_DATABASE_URI = DATABASE_URL
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ENGINE_OPTIONS = {
         "pool_pre_ping": True,
