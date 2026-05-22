@@ -33,6 +33,12 @@ services:
       timeout: 2s
       retries: 30
 
+  redis:
+    container_name: drs_redis
+    image: redis:7-alpine
+    expose:
+      - "6379"
+
   quizservice:
     container_name: drs-flask-quizService
     build:
@@ -73,6 +79,8 @@ services:
       users_db:
         condition: service_healthy
       quizservice:
+        condition: service_started
+      redis:
         condition: service_started
 
   client:

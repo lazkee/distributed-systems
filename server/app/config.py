@@ -42,6 +42,10 @@ class Config:
     if not INTERNAL_SERVICE_SECRET:
         raise RuntimeError("INTERNAL_SERVICE_SECRET is not set")
 
+    REDIS_URL = os.getenv("REDIS_URL")
+    if not REDIS_URL:
+        raise RuntimeError("REDIS_URL is not set")
+
     FRONTEND_ORIGINS_RAW = os.getenv("FRONTEND_ORIGINS")
     if not FRONTEND_ORIGINS_RAW:
         raise RuntimeError("FRONTEND_ORIGINS is not set")
