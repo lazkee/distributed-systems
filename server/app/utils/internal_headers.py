@@ -1,10 +1,10 @@
-from typing import Optional
+from typing import Optional, Union
 
 from flask import current_app
 
 
 def make_internal_headers(
-    user_id: Optional[int | str] = None,
+    user_id: Optional[Union[int, str]] = None,
     user_role: Optional[str] = None,
 ) -> dict:
     headers = {
