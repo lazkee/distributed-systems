@@ -1,4 +1,5 @@
-import axios from "axios";
+import { isAxiosError } from "axios";
+import { apiAxios as axios } from "../axiosInstance";
 import type { IQuizAPIService } from "./IQuizAPIService";
 import type { CreateQuizDto } from "../../models/quiz/CreateQuizDto";
 import type { GetQuizResponse } from "../../types/quiz/GetQuizResponses";
@@ -29,7 +30,7 @@ export const quizApi: IQuizAPIService = {
         } catch (error) {
             let message: string = "Create quiz error";
 
-            if (axios.isAxiosError(error)) {
+            if (isAxiosError(error)) {
                 message = error.response?.data?.message || message;
             }
 
@@ -55,7 +56,7 @@ export const quizApi: IQuizAPIService = {
             return res.data;
         } catch (error) {
             let message = "Get quiz error";
-            if (axios.isAxiosError(error))
+            if (isAxiosError(error))
                 message = error.response?.data?.message || message;
 
             return { success: false, message, data: undefined };
@@ -75,7 +76,7 @@ export const quizApi: IQuizAPIService = {
             return res.data;
         } catch (error) {
             let message = "Get approved quizzes error";
-            if (axios.isAxiosError(error))
+            if (isAxiosError(error))
                 message = error.response?.data?.message || message;
 
             return { success: false, message, data: undefined };
@@ -95,7 +96,7 @@ export const quizApi: IQuizAPIService = {
             return res.data;
         } catch (error) {
             let message = "Get pending quizzes error";
-            if (axios.isAxiosError(error))
+            if (isAxiosError(error))
                 message = error.response?.data?.message || message;
 
             return { success: false, message, data: undefined };
@@ -121,7 +122,7 @@ export const quizApi: IQuizAPIService = {
             return res.data;
         } catch (error) {
             let message = "Get quiz catalog error";
-            if (axios.isAxiosError(error))
+            if (isAxiosError(error))
                 message = error.response?.data?.message || message;
 
             return { success: false, message, data: undefined };
@@ -144,7 +145,7 @@ export const quizApi: IQuizAPIService = {
             return res.data;
         } catch (error) {
             let message = "Get quiz for admin error";
-            if (axios.isAxiosError(error))
+            if (isAxiosError(error))
                 message = error.response?.data?.message || message;
 
             return { success: false, message, data: undefined };
@@ -172,7 +173,7 @@ export const quizApi: IQuizAPIService = {
         } catch (error) {
             let message = "Approve quiz error";
 
-            if (axios.isAxiosError(error)) {
+            if (isAxiosError(error)) {
                 message = error.response?.data?.message || message;
             }
 
@@ -201,7 +202,7 @@ export const quizApi: IQuizAPIService = {
         } catch (error) {
             let message = "Reject quiz error";
 
-            if (axios.isAxiosError(error)) {
+            if (isAxiosError(error)) {
                 message = error.response?.data?.message || message;
             }
 
@@ -225,7 +226,7 @@ export const quizApi: IQuizAPIService = {
         } catch (error) {
             let message = "Delete quiz error";
 
-            if (axios.isAxiosError(error)) {
+            if (isAxiosError(error)) {
                 message = error.response?.data?.message || message;
             }
 
@@ -246,7 +247,7 @@ export const quizApi: IQuizAPIService = {
             return res.data;
         } catch (error) {
             let message = "Get my quizzes error";
-            if (axios.isAxiosError(error))
+            if (isAxiosError(error))
                 message = error.response?.data?.message || message;
 
             return { success: false, message, data: undefined };
@@ -267,7 +268,7 @@ export const quizApi: IQuizAPIService = {
             return res.data;
         } catch (error) {
             let message = "Get rejected quiz error";
-            if (axios.isAxiosError(error))
+            if (isAxiosError(error))
                 message = error.response?.data?.message || message;
 
             return { success: false, message, data: undefined };
@@ -296,7 +297,7 @@ export const quizApi: IQuizAPIService = {
             let message = "Edit quiz error";
             let errors: Record<string, string> | undefined = undefined;
 
-            if (axios.isAxiosError(error)) {
+            if (isAxiosError(error)) {
                 message = error.response?.data?.message || message;
                 errors = error.response?.data?.errors;
             }
@@ -316,7 +317,7 @@ export const quizApi: IQuizAPIService = {
       return res.data;
     } catch (error) {
       let message = "Get leaderboard error";
-      if (axios.isAxiosError(error)) message = error.response?.data?.message || message;
+      if (isAxiosError(error)) message = error.response?.data?.message || message;
 
       return { success: false, message, data: undefined };
     }

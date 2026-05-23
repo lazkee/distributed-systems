@@ -1,4 +1,5 @@
-import axios from "axios";
+import { isAxiosError } from "axios";
+import { apiAxios as axios } from "../axiosInstance";
 import type { IUsersAPIService } from "./IUsersAPIService";
 import type { UserDto } from "../../models/user/UserDto";
 import type { UserApi } from "../../mappers/user_mapper";
@@ -21,7 +22,7 @@ export const usersApi: IUsersAPIService = {
       };
     } catch (error) {
       let message = "Failed to fetch user profile";
-      if (axios.isAxiosError(error)) {
+      if (isAxiosError(error)) {
         message = (error.response?.data as any)?.message || message;
       }
 
@@ -51,7 +52,7 @@ export const usersApi: IUsersAPIService = {
       };
     } catch (error) {
       let message = "Failed to update user profile";
-      if (axios.isAxiosError(error)) {
+      if (isAxiosError(error)) {
         message = (error.response?.data as any)?.message || message;
       }
 

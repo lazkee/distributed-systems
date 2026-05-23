@@ -1,4 +1,5 @@
-import axios from "axios";
+import { isAxiosError } from "axios";
+import { apiAxios as axios } from "../axiosInstance";
 import type {
     QuizStartResponse,
     SubmitAnswerResponse,
@@ -26,7 +27,7 @@ export const quizExecutionApi: IQuizExecutionAPIService = {
             return res.data;
         } catch (error) {
             let message = "Error starting quiz";
-            if (axios.isAxiosError(error))
+            if (isAxiosError(error))
                 message = error.response?.data?.message || message;
 
             return { success: false, message, data: undefined };
@@ -54,7 +55,7 @@ export const quizExecutionApi: IQuizExecutionAPIService = {
             return res.data;
         } catch (error) {
             let message = "Error submitting answer";
-            if (axios.isAxiosError(error)) {
+            if (isAxiosError(error)) {
                 message = error.response?.data?.message || message;
             }
 
@@ -79,7 +80,7 @@ export const quizExecutionApi: IQuizExecutionAPIService = {
             return res.data;
         } catch (error) {
             let message = "Error finishing quiz";
-            if (axios.isAxiosError(error))
+            if (isAxiosError(error))
                 message = error.response?.data?.message || message;
 
             return { success: false, message };

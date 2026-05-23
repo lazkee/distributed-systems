@@ -1,4 +1,5 @@
-import axios from "axios";
+import { isAxiosError } from "axios";
+import { apiAxios as axios } from "../axiosInstance";
 import type { IAdminAPIService } from "./IAdminAPIService";
 import type { AdminResponse } from "../../types/admin/AdminResponse";
 import type { UserDto } from "../../models/user/UserDto";
@@ -21,7 +22,7 @@ export const adminApi: IAdminAPIService = {
             return res.data;
         } catch (error) {
             let message = "Failed to fetch users";
-            if (axios.isAxiosError(error)) message = error.response?.data?.message || message;
+            if (isAxiosError(error)) message = error.response?.data?.message || message;
 
             return { success: false, message, data: null };
         }
@@ -43,7 +44,7 @@ export const adminApi: IAdminAPIService = {
             return res.data;
         } catch (error) {
             let message = "Failed to change user role";
-            if (axios.isAxiosError(error)) message = error.response?.data?.message || message;
+            if (isAxiosError(error)) message = error.response?.data?.message || message;
 
             return { success: false, message, data: null };
         }
@@ -62,7 +63,7 @@ export const adminApi: IAdminAPIService = {
             return res.data;
         } catch (error) {
             let message = "Failed to delete user";
-            if (axios.isAxiosError(error)) message = error.response?.data?.message || message;
+            if (isAxiosError(error)) message = error.response?.data?.message || message;
 
             return { success: false, message, data: null };
         }
@@ -84,7 +85,7 @@ export const adminApi: IAdminAPIService = {
             return res.data;
         } catch (error) {
             let message = "Failed to generateReport";
-            if (axios.isAxiosError(error)) message = error.response?.data?.message || message;
+            if (isAxiosError(error)) message = error.response?.data?.message || message;
 
             return { success: false, message };
         }

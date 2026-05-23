@@ -1,4 +1,5 @@
-import axios from "axios";
+import { isAxiosError } from "axios";
+import { apiAxios as axios } from "../axiosInstance";
 import type { ICloudinariImageAPIService } from "./ICloudinaryImageAPIService";
 import type { CloudinaryImageResponse } from "../../types/cloudinary/CloudinaryImageResponse";
 
@@ -24,7 +25,7 @@ export const cloudinaryApi: ICloudinariImageAPIService = {
     } catch (error) {
       let message = "Image upload error";
 
-      if (axios.isAxiosError(error)) {
+      if (isAxiosError(error)) {
         message = error.response?.data?.message || message;
       }
 

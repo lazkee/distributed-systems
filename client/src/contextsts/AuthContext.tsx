@@ -5,6 +5,7 @@ import type { JwtTokenClaims } from '../types/auth/JwtTokenClaims';
 import type { AuthUser } from '../types/auth/AuthUser';
 import { DeleteValueByKey, ReadValueByKey, SaveValueByKey } from '../helpers/LocalStorage';
 import { authApi } from '../api_services/auth_api/AuthAPIService';
+import { registerTokenRefreshCallback } from '../api_services/axiosInstance';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -49,6 +50,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         SaveValueByKey("authToken", newToken);
         return true;
     };
+
+    useEffect(() => {
+        registerTokenRefreshCallback((newToken: string | null) => {
+            if (newToken) {
+                applyToken(newToken);
+            } else {
+                setToken(null);
+                setUser(null);
+                DeleteValueByKey("authToken");
+                DeleteValueByKey("refreshToken");
+            }
+        });
+    }, []);
 
     useEffect(() => {
         const init = async () => {
