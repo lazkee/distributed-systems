@@ -4,6 +4,7 @@ import type { AuthContextType } from '../types/auth/AuthContext';
 import type { JwtTokenClaims } from '../types/auth/JwtTokenClaims';
 import type { AuthUser } from '../types/auth/AuthUser';
 import { DeleteValueByKey, ReadValueByKey, SaveValueByKey } from '../helpers/LocalStorage';
+import { authApi } from '../api_services/auth_api/AuthAPIService';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -40,44 +41,45 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [token, setToken] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    useEffect(() => {
-        const savedToken = ReadValueByKey("authToken");
+    const applyToken = (newToken: string): boolean => {
+        const claims = decodeJWT(newToken);
+        if (!claims || isTokenExpired(newToken)) return false;
+        setToken(newToken);
+        setUser({ id: claims.id, email: claims.email, role: claims.role });
+        SaveValueByKey("authToken", newToken);
+        return true;
+    };
 
-        if (savedToken) {
-            if (isTokenExpired(savedToken)) {
-                DeleteValueByKey("authToken");
+    useEffect(() => {
+        const init = async () => {
+            const savedToken = ReadValueByKey("authToken");
+            const savedRefreshToken = ReadValueByKey("refreshToken");
+
+            if (savedToken && !isTokenExpired(savedToken)) {
+                applyToken(savedToken);
                 setIsLoading(false);
                 return;
             }
 
-            const claims = decodeJWT(savedToken);
-            if (claims) {
-                setToken(savedToken);
-                setUser({
-                    id: claims.id,
-                    email: claims.email,
-                    role: claims.role
-                });
-            } else {
-                DeleteValueByKey("authToken");
+            if (savedRefreshToken && !isTokenExpired(savedRefreshToken)) {
+                const result = await authApi.refresh(savedRefreshToken);
+                if (result.success && result.data?.access_token) {
+                    applyToken(result.data.access_token);
+                    setIsLoading(false);
+                    return;
+                }
             }
-        }
 
-        setIsLoading(false);
+            DeleteValueByKey("authToken");
+            DeleteValueByKey("refreshToken");
+            setIsLoading(false);
+        };
+
+        init();
     }, []);
 
     const login = (newToken: string) => {
-        const claims = decodeJWT(newToken);
-
-        if (claims && !isTokenExpired(newToken)) {
-            setToken(newToken);
-            setUser({
-                id: claims.id,
-                email: claims.email,
-                role: claims.role
-            });
-            SaveValueByKey("authToken", newToken);
-        } else {
+        if (!applyToken(newToken)) {
             console.error('Invalid or expired token');
         }
     };

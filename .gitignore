@@ -40,3 +40,4 @@ build/
 Thumbs.db
 
 .claude/
+*.tsbuildinfo

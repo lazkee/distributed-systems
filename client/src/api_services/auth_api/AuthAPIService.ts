@@ -1,6 +1,7 @@
 import axios from "axios";
 import type { IAuthAPIService } from "./IAuthAPIService";
 import type { AuthResponse } from "../../types/auth/AuthResponse";
+import type { RefreshResponse } from "../../types/auth/RefreshResponse";
 
 const API_URL: string = import.meta.env.VITE_API_URL + "/auth";
 
@@ -42,6 +43,27 @@ export const authApi: IAuthAPIService = {
             return res.data;
         } catch (error) {
             let message: string = "Register error";
+            if (axios.isAxiosError(error))
+                message = error.response?.data?.message || message;
+
+            return {
+                success: false,
+                message: message,
+                data: undefined
+            };
+        }
+    },
+
+    async refresh(refreshToken: string): Promise<RefreshResponse> {
+        try {
+            const res = await axios.post<RefreshResponse>(
+                `${API_URL}/refresh`,
+                undefined,
+                { headers: { Authorization: `Bearer ${refreshToken}` } }
+            );
+            return res.data;
+        } catch (error) {
+            let message: string = "Refresh error";
             if (axios.isAxiosError(error))
                 message = error.response?.data?.message || message;
 
