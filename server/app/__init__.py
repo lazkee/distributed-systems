@@ -29,7 +29,7 @@ def create_app():
         resources={r"/*": {"origins": Config.FRONTEND_ORIGINS}},
         supports_credentials=True,
         methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-        allow_headers=["Content-Type", "Authorization"]
+        allow_headers=["Content-Type", "Authorization", "X-CSRF-TOKEN"]
     )
 
 

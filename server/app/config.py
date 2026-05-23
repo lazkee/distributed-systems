@@ -28,6 +28,15 @@ class Config:
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=15)
     JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=7)
 
+    JWT_TOKEN_LOCATION = ["cookies"]
+    JWT_COOKIE_CSRF_PROTECT = True
+    JWT_COOKIE_SECURE = os.getenv("COOKIE_SECURE", "false").lower() == "true"
+    JWT_COOKIE_SAMESITE = "Lax"
+    JWT_ACCESS_COOKIE_PATH = "/"
+    JWT_REFRESH_COOKIE_PATH = "/auth/refresh"
+    JWT_ACCESS_CSRF_COOKIE_PATH = "/"
+    JWT_REFRESH_CSRF_COOKIE_PATH = "/auth/refresh"
+
     CLOUDINARY_CLOUD_NAME = os.getenv("CLOUDINARY_CLOUD_NAME")
     CLOUDINARY_API_KEY = os.getenv("CLOUDINARY_API_KEY")
     CLOUDINARY_API_SECRET = os.getenv("CLOUDINARY_API_SECRET")
