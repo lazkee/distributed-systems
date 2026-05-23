@@ -1,3 +1,4 @@
+from datetime import timedelta
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import (
     jwt_required, get_jwt, get_jwt_identity, create_access_token,
@@ -70,6 +71,27 @@ def logout():
     response = jsonify({"success": True, "message": "Logged out successfully"})
     unset_access_cookies(response)
     return response, 200
+
+
+@auth_bp.route("/ws-token", methods=["GET"])
+@jwt_required()
+def ws_token():
+    identity = get_jwt_identity()
+    try:
+        user_id = int(identity)
+    except (TypeError, ValueError):
+        return jsonify({"success": False, "message": "Invalid identity"}), 401
+
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"success": False, "message": "User not found"}), 401
+
+    token = create_access_token(
+        identity=identity,
+        additional_claims={"email": user.email, "role": user.role},
+        expires_delta=timedelta(seconds=60),
+    )
+    return jsonify({"success": True, "message": "WebSocket token issued", "data": {"ws_token": token}}), 200
 
 
 @auth_bp.route("/refresh/logout", methods=["POST"])
