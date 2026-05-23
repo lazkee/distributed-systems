@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt, get_jwt_identity, create_access_token
 from app.services.auth_service import AuthService
 from app.services import jwt_blocklist_service
+from app.models.user import User
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
@@ -42,10 +43,12 @@ def login():
 @jwt_required(refresh=True)
 def refresh():
     identity = get_jwt_identity()
-    claims = get_jwt()
+    user = User.query.get(int(identity))
+    if not user:
+        return jsonify({"success": False, "message": "User not found"}), 401
     access_token = create_access_token(
         identity=identity,
-        additional_claims={"email": claims.get("email"), "role": claims.get("role")}
+        additional_claims={"email": user.email, "role": user.role}
     )
     return jsonify({
         "success": True,

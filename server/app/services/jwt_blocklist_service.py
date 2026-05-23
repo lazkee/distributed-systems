@@ -6,7 +6,7 @@ _client = Redis.from_url(Config.REDIS_URL, decode_responses=True)
 
 _JTI_PREFIX = "jwt:blocklist:"
 _USER_INVALID_BEFORE_PREFIX = "jwt:user_invalid_before:"
-_USER_INVALID_BEFORE_TTL = 86400  # 24 hours
+_USER_INVALID_BEFORE_TTL = 7 * 24 * 60 * 60  # 7 days, matches JWT_REFRESH_TOKEN_EXPIRES
 
 
 def revoke_token(jti: str, exp: int) -> None:
