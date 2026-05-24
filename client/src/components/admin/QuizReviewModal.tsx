@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import type { GetQuizResponseData } from "../../types/quiz/GetQuizResponses";
 import { quizApi } from "../../api_services/quiz_api/QuizAPIService";
-import { useAuth } from "../../hooks/UseAuthHook";
 
 const STORAGE_KEY = "admin_notifications";
 
@@ -18,8 +17,6 @@ export function QuizReviewModal({
     onApprove,
     onReject,
 }: Props) {
-    const { token } = useAuth();
-
     const [quiz, setQuiz] = useState<GetQuizResponseData | null>(null);
     const [comment, setComment] = useState("");
     const [loading, setLoading] = useState(true);
@@ -30,7 +27,7 @@ export function QuizReviewModal({
     useEffect(() => {
         const loadQuiz = async () => {
             try {
-                const res = await quizApi.getQuizForAdmin(token!, quizId);
+                const res = await quizApi.getQuizForAdmin(quizId);
 
                 if (!res.success || !res.data) {
                     removeNotificationFromStorage();
@@ -50,10 +47,10 @@ export function QuizReviewModal({
             }
         };
 
-        if (quizId && token) {
+        if (quizId) {
             loadQuiz();
         }
-    }, [quizId, token]);
+    }, [quizId]);
 
     const removeNotificationFromStorage = () => {
         const saved = localStorage.getItem(STORAGE_KEY);

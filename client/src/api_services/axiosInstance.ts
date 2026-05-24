@@ -1,31 +1,48 @@
 import axios, { type InternalAxiosRequestConfig } from "axios";
-import { ReadValueByKey, SaveValueByKey, DeleteValueByKey } from "../helpers/LocalStorage";
 
 const API_URL = import.meta.env.VITE_API_URL + "/auth";
 
-export const apiAxios = axios.create();
+export const apiAxios = axios.create({ withCredentials: true });
 
 type RetryAxiosRequestConfig = InternalAxiosRequestConfig & { _retry?: boolean };
 
 let isRefreshing = false;
-let pendingQueue: Array<{ resolve: (token: string) => void; reject: (err: unknown) => void }> = [];
+let pendingQueue: Array<{ resolve: () => void; reject: (err: unknown) => void }> = [];
 
-let tokenRefreshCallback: ((newToken: string | null) => void) | null = null;
+let onRefreshFailure: (() => void) | null = null;
 
-export function registerTokenRefreshCallback(callback: (newToken: string | null) => void): void {
-    tokenRefreshCallback = callback;
+export function registerRefreshFailureCallback(callback: () => void): void {
+    onRefreshFailure = callback;
 }
 
-function drainQueue(error: unknown, token: string | null): void {
+function getCookie(name: string): string | null {
+    const match = document.cookie.match(new RegExp("(?:^|; )" + name + "=([^;]*)"));
+    return match ? decodeURIComponent(match[1]) : null;
+}
+
+function drainQueue(error: unknown): void {
     pendingQueue.forEach(({ resolve, reject }) => {
-        if (error) {
-            reject(error);
-        } else {
-            resolve(token!);
-        }
+        if (error) reject(error);
+        else resolve();
     });
     pendingQueue = [];
 }
+
+const STATE_CHANGING_METHODS = new Set(["post", "put", "patch", "delete"]);
+
+apiAxios.interceptors.request.use(config => {
+    const method = config.method?.toLowerCase() ?? "";
+    if (STATE_CHANGING_METHODS.has(method)) {
+        const isRefreshEndpoint = config.url?.includes("/auth/refresh");
+        const csrfToken = isRefreshEndpoint
+            ? getCookie("csrf_refresh_token")
+            : getCookie("csrf_access_token");
+        if (csrfToken) {
+            config.headers["X-CSRF-TOKEN"] = csrfToken;
+        }
+    }
+    return config;
+});
 
 apiAxios.interceptors.response.use(
     response => response,
@@ -42,49 +59,32 @@ apiAxios.interceptors.response.use(
         }
 
         if (isRefreshing) {
-            return new Promise<string>((resolve, reject) => {
+            return new Promise<void>((resolve, reject) => {
                 pendingQueue.push({ resolve, reject });
-            }).then(newToken => {
-                originalRequest.headers.Authorization = `Bearer ${newToken}`;
-                return apiAxios(originalRequest);
-            }).catch(err => Promise.reject(err));
+            })
+                .then(() => apiAxios(originalRequest))
+                .catch(err => Promise.reject(err));
         }
 
         originalRequest._retry = true;
         isRefreshing = true;
 
-        const refreshToken = ReadValueByKey("refreshToken");
-
-        if (!refreshToken) {
-            DeleteValueByKey("authToken");
-            DeleteValueByKey("refreshToken");
-            tokenRefreshCallback?.(null);
-            isRefreshing = false;
-            drainQueue(error, null);
-            return Promise.reject(error);
-        }
-
         try {
-            const res = await axios.post(
+            const csrfToken = getCookie("csrf_refresh_token");
+            await axios.post(
                 `${API_URL}/refresh`,
                 undefined,
-                { headers: { Authorization: `Bearer ${refreshToken}` } }
+                {
+                    withCredentials: true,
+                    headers: csrfToken ? { "X-CSRF-TOKEN": csrfToken } : {},
+                }
             );
 
-            const newAccessToken: string = res.data?.data?.access_token;
-            if (!newAccessToken) throw new Error("No access token in refresh response");
-
-            SaveValueByKey("authToken", newAccessToken);
-            tokenRefreshCallback?.(newAccessToken);
-            drainQueue(null, newAccessToken);
-
-            originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+            drainQueue(null);
             return apiAxios(originalRequest);
         } catch (refreshError) {
-            DeleteValueByKey("authToken");
-            DeleteValueByKey("refreshToken");
-            tokenRefreshCallback?.(null);
-            drainQueue(refreshError, null);
+            onRefreshFailure?.();
+            drainQueue(refreshError);
             return Promise.reject(refreshError);
         } finally {
             isRefreshing = false;

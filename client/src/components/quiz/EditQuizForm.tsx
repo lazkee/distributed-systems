@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useAuth } from "../../hooks/UseAuthHook";
 import type { EditQuizFormProps } from "../../types/quiz/EditQuizFormProps";
 import { QuestionEditor } from "./QuestionEditor";
 import type { QuizQuestionDto } from "../../models/quiz/QuizQuestionDto";
@@ -8,8 +7,6 @@ import type { AnswerMeta,QuestionMeta } from "../../types/quiz/AnswerMeta";
 const STORAGE_KEY = "moderator_notifications";
 
 export default function EditQuizForm({ quizId, quizApi, onSaved }: EditQuizFormProps) {
-    const { token } = useAuth();
-
     const [title, setTitle] = useState("");
     const [duration, setDuration] = useState<number>(0);
     const [questions, setQuestions] = useState<QuizQuestionDto[]>([]);
@@ -20,10 +17,8 @@ export default function EditQuizForm({ quizId, quizApi, onSaved }: EditQuizFormP
     const [formErrors, setFormErrors] = useState<string[]>([]);
 
     useEffect(() => {
-        if (!token) return;
-
         const loadQuiz = async () => {
-            const res = await quizApi.getRejectedQuiz(token, quizId);
+            const res = await quizApi.getRejectedQuiz(quizId);
 
             if (!res.success || !res.data) {
                 setError(res.message || "Failed to load quiz");
@@ -55,7 +50,7 @@ export default function EditQuizForm({ quizId, quizApi, onSaved }: EditQuizFormP
         };
 
         loadQuiz();
-    }, [quizId, quizApi, token]);
+    }, [quizId, quizApi]);
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
@@ -114,7 +109,6 @@ export default function EditQuizForm({ quizId, quizApi, onSaved }: EditQuizFormP
     // ── Save ──────────────────────────────────────────────────────────────────
 
     const handleSave = async () => {
-        if (!token) return;
 
         setFormErrors([]);
         if (!validateQuiz()) return;
@@ -134,7 +128,7 @@ export default function EditQuizForm({ quizId, quizApi, onSaved }: EditQuizFormP
             })),
         };
 
-        const res = await quizApi.editQuiz(token, quizId, payload);
+        const res = await quizApi.editQuiz(quizId, payload);
 
         if (!res.success) {
             if (res.errors) {

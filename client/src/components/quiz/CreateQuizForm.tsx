@@ -10,7 +10,7 @@ import type { CreateQuizResponse } from "../../types/quiz/CreateQuizResponse";
 const STORAGE_KEY = "moderator_notifications";
 
 export function CreateQuizForm({ quizApi }: CreateQuizPageProps) {
-    const { user, token } = useAuth();
+    const { user } = useAuth();
     const navigate = useNavigate();
 
     const [title, setTitle] = useState("");
@@ -63,7 +63,7 @@ export function CreateQuizForm({ quizApi }: CreateQuizPageProps) {
     };
 
     const handleSubmit = async () => {
-        if (!user || !token) return;
+        if (!user) return;
 
         setFormErrors([]);
         if (!validateQuiz()) return;
@@ -75,7 +75,7 @@ export function CreateQuizForm({ quizApi }: CreateQuizPageProps) {
             questions,
         };
 
-        const res: CreateQuizResponse = await quizApi.createQuiz(token, payload);
+        const res: CreateQuizResponse = await quizApi.createQuiz(payload);
 
         if (!res.success) {
             if (res.errors) {

@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import type { IQuizAPIService } from "../../api_services/quiz_api/IQuizAPIService";
 import type { QuizFromList } from "../../types/quiz/QuizFromList";
-import { useAuth } from "../../hooks/UseAuthHook";
 import type { IAdminAPIService } from "../../api_services/admin_api/IAdminAPIService";
 
 interface QuizzesTableProps {
@@ -14,12 +13,10 @@ export default function ApprovedQuizzesTable({ quizApi, adminApi }: QuizzesTable
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedQuizzes, setSelectedQuizzes] = useState<string[]>([]);
-  const { token } = useAuth();
-
   useEffect(() => {
     async function fetchQuizzes() {
       try {
-        const res = await quizApi.getApprovedQuizzes(token!);
+        const res = await quizApi.getApprovedQuizzes();
         if (res.success && res.data) {
           setQuizzes(res.data);
         } else {
@@ -33,7 +30,7 @@ export default function ApprovedQuizzesTable({ quizApi, adminApi }: QuizzesTable
     }
 
     fetchQuizzes();
-  }, [quizApi, token]);
+  }, [quizApi]);
 
   const handleCheckboxChange = (quizId: string) => {
     setSelectedQuizzes((prev) =>
@@ -42,8 +39,6 @@ export default function ApprovedQuizzesTable({ quizApi, adminApi }: QuizzesTable
   };
 
   const handleGenerateReport = async () => {
-    if (!token) return;
-
     if (selectedQuizzes.length === 0) {
       alert("Please select at least one quiz to generate a report.");
       return;
@@ -51,7 +46,7 @@ export default function ApprovedQuizzesTable({ quizApi, adminApi }: QuizzesTable
 
     try {
       const quizIdsAsNumbers = selectedQuizzes.map((id) => parseInt(id, 10));
-      const res = await adminApi.generateReport(token, quizIdsAsNumbers);
+      const res = await adminApi.generateReport(quizIdsAsNumbers);
 
       if (res.success) {
         alert("Report generated successfully, check your email!");
@@ -66,13 +61,11 @@ export default function ApprovedQuizzesTable({ quizApi, adminApi }: QuizzesTable
   };
 
   const handleDeleteQuiz = async (quizId: string) => {
-    if (!token) return;
-
     const confirmDelete = window.confirm("Are you sure you want to delete this quiz?");
     if (!confirmDelete) return;
 
     try {
-      const res = await quizApi.deleteQuiz(parseInt(quizId, 10), token);
+      const res = await quizApi.deleteQuiz(parseInt(quizId, 10));
 
       if (res.success) {
         setQuizzes((prev) => prev.filter((q) => q.id !== quizId));

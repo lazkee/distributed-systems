@@ -1,7 +1,6 @@
 import React from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../hooks/UseAuthHook";
-import { DeleteValueByKey } from "../../helpers/LocalStorage";
 
 type ProtectedRouteProps = {
     children: React.ReactNode;
@@ -12,11 +11,6 @@ type ProtectedRouteProps = {
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRole, redirectTo = "/login" }) => {
     const { isAuthenticated, user, isLoading, logout } = useAuth();
     const location = useLocation();
-
-    const handleLogout = () => {
-        DeleteValueByKey("authToken");
-        logout();
-    };
 
     if (isLoading) {
         return (
@@ -39,7 +33,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requir
                         Required role: <span className="font-semibold">{`"${requiredRole}"`}</span>
                     </p>
                     <button
-                        onClick={handleLogout}
+                        onClick={logout}
                         className="px-6 py-2 bg-rose-700 hover:bg-rose-600 rounded-lg font-medium shadow-md hover:shadow-lg transition-all duration-200"
                     >
                         Log out

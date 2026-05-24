@@ -1,20 +1,18 @@
 import { useEffect, useState } from "react";
 import type { ModeratorTableProps } from "../../types/moderator/ModeratorTableProps";
 import type { QuizFromList } from "../../types/quiz/QuizFromList";
-import { useAuth } from "../../hooks/UseAuthHook";
 import { useNavigate } from "react-router-dom";
 
 export function ModeratorTable({ quizApi }: ModeratorTableProps) {
     const [quizzes, setQuizzes] = useState<QuizFromList[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const { token } = useAuth();
     const navigate = useNavigate();
 
     useEffect(() => {
         async function fetchMyQuizzes() {
             try {
-                const res = await quizApi.getMyQuizzes(token!);
+                const res = await quizApi.getMyQuizzes();
                 if (res.success && res.data) {
                     setQuizzes(res.data);
                 } else {
@@ -27,19 +25,15 @@ export function ModeratorTable({ quizApi }: ModeratorTableProps) {
             }
         }
 
-        if (token) {
-            fetchMyQuizzes();
-        }
-    }, [quizApi, token]);
+        fetchMyQuizzes();
+    }, [quizApi]);
 
     const handleDeleteQuiz = async (quizId: string) => {
-        if (!token) return;
-
         const confirmDelete = window.confirm("Are you sure you want to delete this quiz?");
         if (!confirmDelete) return;
 
         try {
-            const res = await quizApi.deleteQuiz(parseInt(quizId, 10), token);
+            const res = await quizApi.deleteQuiz(parseInt(quizId, 10));
 
             if (res.success) {
                 setQuizzes((prev) => prev.filter((q) => q.id !== quizId));

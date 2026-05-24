@@ -1,7 +1,6 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { QuizReviewModal } from "../../components/admin/QuizReviewModal";
 
-import { useAuth } from "../../hooks/UseAuthHook";
 import DashboardLayout from "../../components/dashboard/DashboardLayout";
 import { Navbar } from "../../components/navbar/Navbar";
 import { ProfileCard } from "../../components/profile_card/ProfileCard";
@@ -19,16 +18,15 @@ interface QuizReviewPageProps {
 export default function QuizReviewPage({ cloudinaryApi, usersApi, quizApi }: QuizReviewPageProps) {
     const { quizId } = useParams<{ quizId: string }>();
     const navigate = useNavigate();
-    const { token } = useAuth();
     const [showProfile, setShowProfile] = useState(false);
 
     const approve = async (comment: string) => {
-        await quizApi.approveQuiz(token!, Number(quizId), comment);
+        await quizApi.approveQuiz(Number(quizId), comment);
         navigate("/Admin-dashboard");
     };
 
     const reject = async (comment: string) => {
-        await quizApi.rejectQuiz(token!, Number(quizId), comment);
+        await quizApi.rejectQuiz(Number(quizId), comment);
         navigate("/Admin-dashboard");
     };
 

@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import type { CloudinaryImageResponse } from "../../types/cloudinary/CloudinaryImageResponse";
-import { useAuth } from "../../hooks/UseAuthHook";
 import type { UserDto } from "../../models/user/UserDto";
 import type { ProfileFormState } from "../../types/user/ProfileFormState";
 import type { ProfileCardProps } from "../../types/user/ProfileCardProps";
@@ -11,8 +10,6 @@ export function ProfileCard({
   cloudinaryApi,
   usersApi,
 }: ProfileCardProps) {
-  const { token } = useAuth();
-
   const [profile, setProfile] = useState<UserDto | null>(null);
   const [form, setForm] = useState<ProfileFormState>({
     firstName: "",
@@ -48,15 +45,10 @@ export function ProfileCard({
 
   useEffect(() => {
     const fetchMe = async () => {
-      if (!token) {
-        setError("Missing auth token");
-        return;
-      }
-
       setLoadingProfile(true);
       setError("");
 
-      const res = await usersApi.getMe(token);
+      const res = await usersApi.getMe();
       if (!res.success || !res.data) {
         setError(res.message || "Failed to fetch profile");
         setProfile(null);
@@ -66,28 +58,23 @@ export function ProfileCard({
       }
 
       const dto = res.data;
-
       setProfile(dto);
       setProfilePicture(dto.profilePictureUrl ?? "");
-
       setForm({
         firstName: dto.firstName ?? "",
         lastName: dto.lastName ?? "",
         email: dto.email ?? "",
         dateOfBirth: dto.dateOfBirth ?? "",
-        gender: (dto.gender === "Male" || dto.gender === "Female"
-          ? dto.gender
-          : "") as ProfileFormState["gender"],
+        gender: (dto.gender === "Male" || dto.gender === "Female" ? dto.gender : "") as ProfileFormState["gender"],
         country: dto.country ?? "",
         street: dto.street ?? "",
         streetNumber: dto.streetNumber ?? "",
       });
-
       setLoadingProfile(false);
     };
 
     fetchMe();
-  }, [token, usersApi]);
+  }, [usersApi]);
 
   const onChange =
     (field: keyof Omit<ProfileFormState, "gender" | "dateOfBirth">) =>
@@ -100,33 +87,18 @@ export function ProfileCard({
   };
 
   const onGenderChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setForm((prev) => ({
-      ...prev,
-      gender: e.target.value as ProfileFormState["gender"],
-    }));
+    setForm((prev) => ({ ...prev, gender: e.target.value as ProfileFormState["gender"] }));
   };
 
   const handleChangePicture = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
-    if (!token) {
-      alert("Missing auth token");
-      return;
-    }
-
     const file = e.target.files[0];
-
     setLoadingPicture(true);
     try {
-      const res: CloudinaryImageResponse = await cloudinaryApi.addOrChangeImage(
-        file,
-        token
-      );
-
+      const res: CloudinaryImageResponse = await cloudinaryApi.addOrChangeImage(file);
       if (res.success) {
         setProfilePicture(res.data.url);
-        setProfile((prev) =>
-          prev ? { ...prev, profilePictureUrl: res.data.url } : prev
-        );
+        setProfile((prev) => prev ? { ...prev, profilePictureUrl: res.data.url } : prev);
       } else {
         alert(res.message);
       }
@@ -139,10 +111,6 @@ export function ProfileCard({
   };
 
   const handleSave = async () => {
-    if (!token) {
-      alert("Missing auth token");
-      return;
-    }
     if (!profile) return;
 
     const validationErrors = validateChangeProfileDataForm(form);
@@ -158,15 +126,13 @@ export function ProfileCard({
     if (profile.firstName !== form.firstName) updates.firstName = form.firstName;
     if (profile.lastName !== form.lastName) updates.lastName = form.lastName;
     if (profile.email !== form.email) updates.email = form.email;
-    if (profile.dateOfBirth !== form.dateOfBirth)
-      updates.dateOfBirth = form.dateOfBirth;
+    if (profile.dateOfBirth !== form.dateOfBirth) updates.dateOfBirth = form.dateOfBirth;
     if ((profile.gender ?? "") !== form.gender) updates.gender = form.gender;
     if (profile.country !== form.country) updates.country = form.country;
     if (profile.street !== form.street) updates.street = form.street;
-    if (profile.streetNumber !== form.streetNumber)
-      updates.streetNumber = form.streetNumber;
+    if (profile.streetNumber !== form.streetNumber) updates.streetNumber = form.streetNumber;
 
-    const res = await usersApi.updateMe(token, updates);
+    const res = await usersApi.updateMe(updates);
 
     if (!res.success || !res.data) {
       setError(res.message || "Failed to save profile");
@@ -176,22 +142,18 @@ export function ProfileCard({
 
     const dto = res.data;
     setProfile(dto);
-
     setForm({
       firstName: dto.firstName ?? "",
       lastName: dto.lastName ?? "",
       email: dto.email ?? "",
       dateOfBirth: dto.dateOfBirth ?? "",
-      gender: (dto.gender === "Male" || dto.gender === "Female"
-        ? dto.gender
-        : "") as ProfileFormState["gender"],
+      gender: (dto.gender === "Male" || dto.gender === "Female" ? dto.gender : "") as ProfileFormState["gender"],
       country: dto.country ?? "",
       street: dto.street ?? "",
       streetNumber: dto.streetNumber ?? "",
     });
-
     setSaving(false);
-     setErrors({});
+    setErrors({});
   };
 
   if (loadingProfile) {
@@ -229,102 +191,62 @@ export function ProfileCard({
       <div className="mb-4">
         <label className="inline-block px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg cursor-pointer text-sm">
           {loadingPicture ? "Uploading..." : "Change Picture"}
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleChangePicture}
-            className="hidden"
-          />
+          <input type="file" accept="image/*" onChange={handleChangePicture} className="hidden" />
         </label>
       </div>
 
-      <h2 className="text-xl font-bold mb-3 text-gray-100">
-        {form.firstName} {form.lastName}
-      </h2>
+      <h2 className="text-xl font-bold mb-3 text-gray-100">{form.firstName} {form.lastName}</h2>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-8 text-left">
         <label className="text-gray-100">
           First Name
-          <input
-            value={form.firstName}
-            onChange={onChange("firstName")}
-            className="w-full mt-1 px-3 py-2 rounded-lg bg-gray-700 text-gray-100 placeholder-gray-400 border border-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-150"
-          />
+          <input value={form.firstName} onChange={onChange("firstName")} className="w-full mt-1 px-3 py-2 rounded-lg bg-gray-700 text-gray-100 placeholder-gray-400 border border-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-150" />
           {errors.firstName && <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>}
         </label>
 
         <label className="text-gray-100">
           Last Name
-          <input
-            value={form.lastName}
-            onChange={onChange("lastName")}
-            className="w-full mt-1 px-3 py-2 rounded-lg bg-gray-700 text-gray-100 placeholder-gray-400 border border-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-150"
-          />
+          <input value={form.lastName} onChange={onChange("lastName")} className="w-full mt-1 px-3 py-2 rounded-lg bg-gray-700 text-gray-100 placeholder-gray-400 border border-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-150" />
           {errors.lastName && <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>}
         </label>
 
         <label className="text-gray-100">
           Email
-          <input
-            value={form.email}
-            onChange={onChange("email")}
-            className="w-full mt-1 px-3 py-2 rounded-lg bg-gray-700 text-gray-100 placeholder-gray-400 border border-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-150"
-          />
+          <input value={form.email} onChange={onChange("email")} className="w-full mt-1 px-3 py-2 rounded-lg bg-gray-700 text-gray-100 placeholder-gray-400 border border-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-150" />
           {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
         </label>
 
         <label className="text-gray-100">
           Date of Birth
-          <input
-            type="date"
-            value={form.dateOfBirth}
-            onChange={onDateChange}
-            className="w-full mt-1 px-3 py-2 rounded-lg bg-gray-700 text-gray-100 border border-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-150"
-          />
+          <input type="date" value={form.dateOfBirth} onChange={onDateChange} className="w-full mt-1 px-3 py-2 rounded-lg bg-gray-700 text-gray-100 border border-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-150" />
           {errors.dateOfBirth && <p className="text-red-500 text-sm mt-1">{errors.dateOfBirth}</p>}
         </label>
 
         <label className="text-gray-100">
-        Gender
-        <select
-          value={form.gender}
-          onChange={onGenderChange}
-          className="w-full mt-1 px-3 py-2 rounded-lg bg-gray-700 text-gray-100 border border-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-150"
-        >
-          <option value="">Select...</option>
-          <option value="Male">Male</option>
-          <option value="Female">Female</option>
-        </select>
-        {errors.gender && <p className="text-red-500 text-sm mt-1">{errors.gender}</p>}
-      </label>
+          Gender
+          <select value={form.gender} onChange={onGenderChange} className="w-full mt-1 px-3 py-2 rounded-lg bg-gray-700 text-gray-100 border border-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-150">
+            <option value="">Select...</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+          </select>
+          {errors.gender && <p className="text-red-500 text-sm mt-1">{errors.gender}</p>}
+        </label>
 
         <label className="text-gray-100">
           Country
-          <input
-            value={form.country}
-            onChange={onChange("country")}
-            className="w-full mt-1 px-3 py-2 rounded-lg bg-gray-700 text-gray-100 placeholder-gray-400 border border-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-150"
-          />
+          <input value={form.country} onChange={onChange("country")} className="w-full mt-1 px-3 py-2 rounded-lg bg-gray-700 text-gray-100 placeholder-gray-400 border border-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-150" />
           {errors.country && <p className="text-red-500 text-sm mt-1">{errors.country}</p>}
         </label>
 
         <label className="text-gray-100">
           Street
-          <input
-            value={form.street}
-            onChange={onChange("street")}
-            className="w-full mt-1 px-3 py-2 rounded-lg bg-gray-700 text-gray-100 placeholder-gray-400 border border-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-150"
-          />
+          <input value={form.street} onChange={onChange("street")} className="w-full mt-1 px-3 py-2 rounded-lg bg-gray-700 text-gray-100 placeholder-gray-400 border border-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-150" />
           {errors.street && <p className="text-red-500 text-sm mt-1">{errors.street}</p>}
         </label>
 
         <label className="text-gray-100">
           Street Number
-          <input
-            value={form.streetNumber}
-            onChange={onChange("streetNumber")}
-            className="w-full mt-1 px-3 py-2 rounded-lg bg-gray-700 text-gray-100 placeholder-gray-400 border border-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-150"
-          />
+          <input value={form.streetNumber} onChange={onChange("streetNumber")} className="w-full mt-1 px-3 py-2 rounded-lg bg-gray-700 text-gray-100 placeholder-gray-400 border border-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-150" />
           {errors.streetNumber && <p className="text-red-500 text-sm mt-1">{errors.streetNumber}</p>}
         </label>
 
@@ -337,10 +259,7 @@ export function ProfileCard({
         <button
           disabled={!hasChanges || saving}
           onClick={handleSave}
-          className={`px-4 py-2 rounded-lg font-medium shadow-md hover:shadow-lg transition-all duration-200 min-w-[120px] ${!hasChanges || saving
-            ? "bg-gray-500 cursor-not-allowed text-gray-200"
-            : "bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer"
-            }`}
+          className={`px-4 py-2 rounded-lg font-medium shadow-md hover:shadow-lg transition-all duration-200 min-w-[120px] ${!hasChanges || saving ? "bg-gray-500 cursor-not-allowed text-gray-200" : "bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer"}`}
         >
           {saving ? "Saving..." : "Save"}
         </button>

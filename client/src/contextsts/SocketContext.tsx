@@ -1,14 +1,15 @@
 import { createContext, useContext, useEffect } from "react";
 import { socket } from "../sockets/socket";
 import { useAuth } from "../hooks/UseAuthHook";
+import { authApi } from "../api_services/auth_api/AuthAPIService";
 
 const SocketContext = createContext(socket);
 
 export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
-    const { user, token } = useAuth();
+    const { user } = useAuth();
 
     useEffect(() => {
-        if (!user || !token) {
+        if (!user) {
             if (socket.connected) {
                 socket.disconnect();
             }
@@ -19,7 +20,6 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
             if (user.role === "Admin") {
                 socket.emit("join", "admins");
             }
-
             if (user.role === "Moderator") {
                 socket.emit("join", `user_${user.id}`);
             }
@@ -27,17 +27,23 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
 
         socket.on("connect", handleConnect);
 
-        socket.auth = { token };
+        let cancelled = false;
 
-        if (!socket.connected) {
-            socket.connect();
-        }
+        authApi.getWebSocketToken().then(result => {
+            if (cancelled) return;
+            if (!result.success || !result.data?.ws_token) return;
+            socket.auth = { token: result.data.ws_token };
+            if (!socket.connected) {
+                socket.connect();
+            }
+        });
 
         return () => {
+            cancelled = true;
             socket.off("connect", handleConnect);
             socket.disconnect();
         };
-    }, [user, token]);
+    }, [user]);
 
     return (
         <SocketContext.Provider value={socket}>

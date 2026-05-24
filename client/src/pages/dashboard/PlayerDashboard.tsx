@@ -1,7 +1,6 @@
 // src/pages/dashboard/PlayerDashboard.tsx
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../hooks/UseAuthHook";
 import { Navbar } from "../../components/navbar/Navbar";
 import { ProfileCard } from "../../components/profile_card/ProfileCard";
 
@@ -19,7 +18,6 @@ export default function PlayerDashboard({
   quizApi,
 }: PlayerDashboardProps) {
   const navigate = useNavigate();
-  const { token } = useAuth();
 
   const [showProfile, setShowProfile] = useState(false);
 
@@ -44,18 +42,11 @@ export default function PlayerDashboard({
     let cancelled = false;
 
     const load = async () => {
-      if (!token) {
-        setItems([]);
-        setTotalPages(1);
-        setErrorMsg("You are not authenticated.");
-        return;
-      }
-
       setLoading(true);
       setErrorMsg("");
 
       try {
-        const res = await quizApi.getCatalog(token, page, pageSize);
+        const res = await quizApi.getCatalog(page, pageSize);
 
         if (cancelled) return;
 
@@ -84,7 +75,7 @@ export default function PlayerDashboard({
     return () => {
       cancelled = true;
     };
-  }, [token, quizApi, page]);
+  }, [quizApi, page]);
 
   const onPrev = () => setPage((p) => Math.max(1, p - 1));
   const onNext = () => setPage((p) => p + 1);

@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import type { IQuizAPIService } from "../../api_services/quiz_api/IQuizAPIService";
 import type { QuizFromList } from "../../types/quiz/QuizFromList";
-import { useAuth } from "../../hooks/UseAuthHook";
 import { useNavigate } from "react-router-dom";
 
 interface QuizzesTableProps {
@@ -12,13 +11,12 @@ export default function PendingQuizzesTable({ quizApi }: QuizzesTableProps) {
     const [quizzes, setQuizzes] = useState<QuizFromList[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const { token } = useAuth();
     const navigate = useNavigate();
 
     useEffect(() => {
         async function fetchQuizzes() {
             try {
-                const res = await quizApi.getPendingQuizzes(token!);
+                const res = await quizApi.getPendingQuizzes();
                 if (res.success && res.data) {
                     setQuizzes(res.data);
                 } else {
@@ -32,7 +30,7 @@ export default function PendingQuizzesTable({ quizApi }: QuizzesTableProps) {
         }
 
         fetchQuizzes();
-    }, [quizApi, token]);
+    }, [quizApi]);
 
     if (loading) return <p className="text-gray-500">Loading quizzes...</p>;
     if (error) return <p className="text-red-500">{error}</p>;

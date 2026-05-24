@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { useAuth } from "../../hooks/UseAuthHook";
 import { Navbar } from "../../components/navbar/Navbar";
 import { DashboardLayout } from "../../components/dashboard/DashboardLayout";
 import { DashboardHeader } from "../../components/player_dashboard/DashboardHeader";
@@ -22,7 +21,6 @@ interface LeaderboardHomePageProps {
 
 export function LeaderboardHomePage({ cloudinaryApi, usersApi, quizApi, }: LeaderboardHomePageProps) {
   const navigate = useNavigate();
-  const { token } = useAuth();
 
   const [items, setItems] = useState<QuizCatalogItem[]>([]);
   const [page, setPage] = useState<number>(1);
@@ -40,19 +38,11 @@ export function LeaderboardHomePage({ cloudinaryApi, usersApi, quizApi, }: Leade
     let cancelled = false;
 
     const load = async () => {
-      if (!token) {
-        setItems([]);
-        setTotalPages(1);
-        setErrorMsg("You are not authenticated.");
-        return;
-      }
-
       setLoading(true);
       setErrorMsg("");
 
       try {
-        // Uses the same catalog source as PlayerDashboard
-        const res = await quizApi.getCatalog(token, page, pageSize);
+        const res = await quizApi.getCatalog(page, pageSize);
 
         if (cancelled) return;
 
@@ -80,7 +70,7 @@ export function LeaderboardHomePage({ cloudinaryApi, usersApi, quizApi, }: Leade
     return () => {
       cancelled = true;
     };
-  }, [token, page]);
+  }, [page]);
 
   const onPrev = () => setPage((p) => Math.max(1, p - 1));
   const onNext = () => setPage((p) => Math.min(totalPages, p + 1));

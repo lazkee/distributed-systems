@@ -31,7 +31,7 @@ export function QuizPlayPage({ quizApi, executionApi }: QuizPlayPageProps) {
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [answersSelected, setAnswersSelected] = useState<Record<number, number[]>>({});
 
-    const { token, user } = useAuth();
+    const { user } = useAuth();
 
     // Load quiz data
     useEffect(() => {
@@ -40,7 +40,7 @@ export function QuizPlayPage({ quizApi, executionApi }: QuizPlayPageProps) {
             setError("");
             try {
                 if (!quizId) throw new Error("Quiz ID is missing");
-                const response = await quizApi.getQuiz(token!, Number(quizId));
+                const response = await quizApi.getQuiz(Number(quizId));
                 if (response.success && response.data) {
                     setQuizData(response.data);
                 } else {
@@ -53,13 +53,13 @@ export function QuizPlayPage({ quizApi, executionApi }: QuizPlayPageProps) {
             }
         };
         loadQuiz();
-    }, [quizId, quizApi, token]);
+    }, [quizId, quizApi]);
 
     // Start quiz
     const startQuiz = async () => {
         console.log("QUIZ DATA:", quizData);
         if (!quizData) return;
-        const response = await executionApi.startQuiz(token!, quizData.quiz_id);
+        const response = await executionApi.startQuiz(quizData.quiz_id);
         if (response.success && response.data) {
             setAttemptId(response.data.attempt_id);
             setQuizStarted(true);
@@ -85,7 +85,7 @@ export function QuizPlayPage({ quizApi, executionApi }: QuizPlayPageProps) {
         }
 
         try {
-            const response = await executionApi.submitAnswer(token!, attemptId, currentQuestion.question_id, answerIds);
+            const response = await executionApi.submitAnswer(attemptId, currentQuestion.question_id, answerIds);
 
             if (!response.success) {
                 console.error(response.message);
@@ -101,9 +101,9 @@ export function QuizPlayPage({ quizApi, executionApi }: QuizPlayPageProps) {
 
     // Finish quiz
     const finishQuiz = () => {
-        if (!attemptId || !token) return;
+        if (!attemptId) return;
 
-        executionApi.finishQuiz(token, attemptId)   // Not awaiting - user can continue normally
+        executionApi.finishQuiz(attemptId)   // Not awaiting - user can continue normally
             .catch(err => {
                 console.error("Finish quiz failed", err);
             });
