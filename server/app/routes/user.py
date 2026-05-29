@@ -56,7 +56,13 @@ def upload_profile_picture():
         return jsonify({"success": False, "message": "No image provided"}), 400
 
     image = request.files["image"]
-    result = CloudinaryService.upload_profile_picture(user_id, image)
+
+    try:
+        result = CloudinaryService.upload_profile_picture(user_id, image)
+    except ValueError as e:
+        return jsonify({"success": False, "message": str(e)}), 400
+    except Exception:
+        return jsonify({"success": False, "message": "Failed to upload profile picture"}), 500
 
     return jsonify(
         {
