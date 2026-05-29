@@ -10,33 +10,21 @@ quiz_admin_bp = Blueprint("quiz_admin", __name__, url_prefix="/quiz")
 @quiz_admin_bp.get("/getApproved")
 @require_internal
 def get_approved():
-    try:
-        quizzes = QuizAdminService.get_approved()
-        return jsonify({
-            "success": True,
-            "data": quizzes
-        }), 200
-    except Exception as e:
-        return jsonify({
-            "success": False,
-            "message": str(e)
-        }), 500
+    quizzes = QuizAdminService.get_approved()
+    return jsonify({
+        "success": True,
+        "data": quizzes
+    }), 200
 
 
 @quiz_admin_bp.get("/getPending")
 @require_internal
 def get_pending():
-    try:
-        quizzes = QuizAdminService.get_pending()
-        return jsonify({
-            "success": True,
-            "data": quizzes
-        }), 200
-    except Exception as e:
-        return jsonify({
-            "success": False,
-            "message": str(e)
-        }), 500
+    quizzes = QuizAdminService.get_pending()
+    return jsonify({
+        "success": True,
+        "data": quizzes
+    }), 200
 
 
 @quiz_admin_bp.route("/admin/<int:quiz_id>", methods=["GET"])
@@ -53,11 +41,6 @@ def get_quiz_for_admin(quiz_id: int):
             "success": False,
             "message": str(e)
         }), 404
-    except Exception as e:
-        return jsonify({
-            "success": False,
-            "message": str(e)
-        }), 500
 
 
 @quiz_admin_bp.route("/admin/<int:quiz_id>/approve", methods=["PUT"])
@@ -77,12 +60,6 @@ def approve_quiz(quiz_id: int):
             "success": False,
             "message": str(e)
         }), 400
-
-    except Exception as e:
-        return jsonify({
-            "success": False,
-            "message": f"Failed to approve quiz: {str(e)}"
-        }), 500
 
 
 @quiz_admin_bp.route("/admin/<int:quiz_id>/reject", methods=["PUT"])
@@ -112,12 +89,6 @@ def reject_quiz(quiz_id: int):
         if "not found" in msg:
             return jsonify({"success": False, "message": msg}), 404
         return jsonify({"success": False, "message": msg}), 400
-
-    except Exception as e:
-        return jsonify({
-            "success": False,
-            "message": f"Failed to reject quiz: {str(e)}"
-        }), 500
 
 
 @quiz_admin_bp.route("/delete/<int:quiz_id>", methods=["DELETE"])
@@ -151,9 +122,3 @@ def delete_quiz(quiz_id):
             "success": False,
             "message": str(e)
         }), 403
-
-    except Exception as e:
-        return jsonify({
-            "success": False,
-            "message": f"Failed to delete quiz: {str(e)}"
-        }), 500

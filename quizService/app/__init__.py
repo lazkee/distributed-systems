@@ -1,4 +1,6 @@
-from flask import Flask
+import uuid
+from flask import Flask, jsonify
+from werkzeug.exceptions import HTTPException
 from .config import Config
 from .extensions import db, jwt
 from flask_cors import CORS
@@ -23,6 +25,17 @@ def create_app():
 
     db.init_app(app)
     jwt.init_app(app)
+
+    @app.errorhandler(Exception)
+    def handle_unexpected_error(error):
+        if isinstance(error, HTTPException):
+            return jsonify({"success": False, "message": error.description}), error.code
+        ref = str(uuid.uuid4())[:8]
+        app.logger.exception(f"Unhandled exception [ref={ref}]")
+        return jsonify({
+            "success": False,
+            "message": f"An internal error occurred. Reference: {ref}"
+        }), 500
 
     app.register_blueprint(quiz_bp)
     app.register_blueprint(quiz_execution_bp)

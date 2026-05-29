@@ -23,28 +23,16 @@ def get_quiz(quiz_id: int):
             "success": False,
             "message": str(e)
         }), 404
-    except Exception as ex:
-        return jsonify({
-            "success": False,
-            "message": f"Failed to fetch quiz {ex}"
-        }), 500
 
 
 @quiz_bp.get("/catalog")
 @require_internal
 def get_catalog():
-    try:
-        page = request.args.get("page", 1, type=int)
-        page_size = request.args.get("page_size", 12, type=int)
+    page = request.args.get("page", 1, type=int)
+    page_size = request.args.get("page_size", 12, type=int)
 
-        data = QuizService.get_catalog(page=page, page_size=page_size)
-        return jsonify({
-            "success": True,
-            "data": data
-        }), 200
-
-    except Exception as e:
-        return jsonify({
-            "success": False,
-            "message": str(e)
-        }), 500
+    data = QuizService.get_catalog(page=page, page_size=page_size)
+    return jsonify({
+        "success": True,
+        "data": data
+    }), 200

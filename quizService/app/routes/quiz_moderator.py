@@ -45,11 +45,6 @@ def create_quiz():
             "message": str(e)
         }), 400
 
-    except Exception as e:
-        return jsonify({
-            "success": False,
-            "message": f"Failed to create quiz: {str(e)}"
-        }), 500
 
 
 @quiz_moderator_bp.get("/my/<int:user_id>")
@@ -67,17 +62,11 @@ def get_my_quizzes(user_id: int):
     if requester_id != user_id:
         return jsonify({"success": False, "message": "Forbidden"}), 403
 
-    try:
-        quizzes = QuizModeratorService.get_by_author(user_id)
-        return jsonify({
-            "success": True,
-            "data": quizzes
-        }), 200
-    except Exception as e:
-        return jsonify({
-            "success": False,
-            "message": str(e)
-        }), 500
+    quizzes = QuizModeratorService.get_by_author(user_id)
+    return jsonify({
+        "success": True,
+        "data": quizzes
+    }), 200
 
 
 @quiz_moderator_bp.route("/getRejected/<int:quiz_id>", methods=["GET"])
@@ -108,11 +97,6 @@ def get_rejected_quiz(quiz_id: int):
             "success": False,
             "message": str(e)
         }), 400
-    except Exception as e:
-        return jsonify({
-            "success": False,
-            "message": f"Failed to fetch rejected quiz: {str(e)}"
-        }), 500
 
 
 @quiz_moderator_bp.route("/edit/<int:quiz_id>", methods=["PUT"])
@@ -163,8 +147,3 @@ def edit_quiz(quiz_id: int):
             "message": str(e)
         }), 400
 
-    except Exception as e:
-        return jsonify({
-            "success": False,
-            "message": f"Failed to update quiz: {str(e)}"
-        }), 500

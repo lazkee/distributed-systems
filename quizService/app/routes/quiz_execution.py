@@ -49,8 +49,8 @@ def finish_quiz_background(attempt_id, player_email, app):
         with app.app_context():
             try:
                 QuizExecutionService.finish_quiz(int(attempt_id), player_email)
-            except Exception as e:
-                print(f"Error finishing quiz {attempt_id}: {e}")
+            except Exception:
+                app.logger.exception(f"Error finishing quiz {attempt_id}")
 
 
 @quiz_execution_bp.route("/finish", methods=["POST"])
