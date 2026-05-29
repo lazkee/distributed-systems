@@ -1,6 +1,7 @@
 import uuid
 from flask import Flask, jsonify
 from werkzeug.exceptions import HTTPException
+from flask_talisman import Talisman
 from .config import Config
 from .extensions import db, jwt, socketio, limiter
 from flask_cors import CORS
@@ -13,7 +14,14 @@ from .routes.user import user_bp
 from .routes.quiz import quiz_bp
 from .routes.quiz_execution import quiz_execution_bp
 from .routes.quiz_leaderboard import quiz_leaderboard_bp
-from .routes import socket_events 
+from .routes import socket_events
+
+
+_CSP = {
+    "default-src": "'none'",
+    "img-src": "'self' res.cloudinary.com",
+    "connect-src": "'self'",
+}
 
 
 def create_app():
@@ -26,6 +34,21 @@ def create_app():
         api_secret=Config.CLOUDINARY_API_SECRET
     )
 
+    is_secure = Config.JWT_COOKIE_SECURE
+
+    Talisman(
+        app,
+        force_https=is_secure,
+        strict_transport_security=is_secure,
+        strict_transport_security_max_age=31536000,
+        frame_options="DENY",
+        referrer_policy="strict-origin-when-cross-origin",
+        content_security_policy=_CSP,
+        content_type_options=True,
+        session_cookie_secure=is_secure,
+        session_cookie_samesite="Lax",
+    )
+
     CORS(
         app,
         resources={r"/*": {"origins": Config.FRONTEND_ORIGINS}},
@@ -33,7 +56,6 @@ def create_app():
         methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
         allow_headers=["Content-Type", "Authorization", "X-CSRF-TOKEN"]
     )
-
 
     db.init_app(app)
     jwt.init_app(app)
@@ -59,13 +81,6 @@ def create_app():
             or jwt_blocklist_service.is_token_invalid_for_user(user_id, iat)
         )
 
-    @app.after_request
-    def set_security_headers(response):
-        response.headers["X-Content-Type-Options"] = "nosniff"
-        response.headers["X-Frame-Options"] = "DENY"
-        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-        return response
-
     @app.errorhandler(Exception)
     def handle_unexpected_error(error):
         if isinstance(error, HTTPException):
@@ -84,4 +99,3 @@ def create_app():
     app.register_blueprint(quiz_execution_bp)
     app.register_blueprint(quiz_leaderboard_bp)
     return app
-  
