@@ -36,10 +36,10 @@ def get_quiz_for_admin(quiz_id: int):
             "success": True,
             "data": quiz
         }), 200
-    except ValueError as e:
+    except ValueError:
         return jsonify({
             "success": False,
-            "message": str(e)
+            "message": "Quiz not found"
         }), 404
 
 
@@ -55,10 +55,10 @@ def approve_quiz(quiz_id: int):
             "data": result
         }), 200
 
-    except ValueError as e:
+    except ValueError:
         return jsonify({
             "success": False,
-            "message": str(e)
+            "message": "Quiz not found"
         }), 400
 
 
@@ -85,10 +85,9 @@ def reject_quiz(quiz_id: int):
         }), 200
 
     except ValueError as e:
-        msg = str(e)
-        if "not found" in msg:
-            return jsonify({"success": False, "message": msg}), 404
-        return jsonify({"success": False, "message": msg}), 400
+        if "not found" in str(e).lower():
+            return jsonify({"success": False, "message": "Quiz not found"}), 404
+        return jsonify({"success": False, "message": "Operation could not be completed"}), 400
 
 
 @quiz_admin_bp.route("/delete/<int:quiz_id>", methods=["DELETE"])
@@ -117,8 +116,8 @@ def delete_quiz(quiz_id):
 
         return jsonify(result), 200
 
-    except PermissionError as e:
+    except PermissionError:
         return jsonify({
             "success": False,
-            "message": str(e)
+            "message": "Forbidden"
         }), 403

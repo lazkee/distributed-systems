@@ -39,10 +39,10 @@ def create_quiz():
             "data": result
         }), 201
 
-    except ValueError as e:
+    except ValueError:
         return jsonify({
             "success": False,
-            "message": str(e)
+            "message": "Quiz creation failed"
         }), 400
 
 
@@ -87,16 +87,15 @@ def get_rejected_quiz(quiz_id: int):
             "success": True,
             "data": quiz
         }), 200
-    except PermissionError as e:
+    except PermissionError:
         return jsonify({
             "success": False,
-            "message": str(e)
+            "message": "Forbidden"
         }), 403
     except ValueError as e:
-        return jsonify({
-            "success": False,
-            "message": str(e)
-        }), 400
+        if "not found" in str(e).lower():
+            return jsonify({"success": False, "message": "Quiz not found"}), 400
+        return jsonify({"success": False, "message": "Quiz cannot be edited in its current state"}), 400
 
 
 @quiz_moderator_bp.route("/edit/<int:quiz_id>", methods=["PUT"])
@@ -135,15 +134,14 @@ def edit_quiz(quiz_id: int):
             "data": result
         }), 200
 
-    except PermissionError as e:
+    except PermissionError:
         return jsonify({
             "success": False,
-            "message": str(e)
+            "message": "Forbidden"
         }), 403
 
     except ValueError as e:
-        return jsonify({
-            "success": False,
-            "message": str(e)
-        }), 400
+        if "not found" in str(e).lower():
+            return jsonify({"success": False, "message": "Quiz not found"}), 400
+        return jsonify({"success": False, "message": "Quiz cannot be edited in its current state"}), 400
 

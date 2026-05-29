@@ -18,10 +18,10 @@ def get_quiz(quiz_id: int):
             "success": True,
             "data": quiz_data
         }), 200
-    except ValueError as e:
+    except ValueError:
         return jsonify({
             "success": False,
-            "message": str(e)
+            "message": "Quiz not found"
         }), 404
 
 

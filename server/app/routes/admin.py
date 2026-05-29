@@ -43,8 +43,8 @@ def change_role():
             "message": f"User role updated to {new_role.value}",
             "data": {"id": user.id, "email": user.email, "role": user.role, "firstName": user.first_name, "lastName": user.last_name}
         }), 200
-    except ValueError as e:
-        return jsonify({"success": False, "message": str(e)}), 404
+    except ValueError:
+        return jsonify({"success": False, "message": "User not found"}), 404
     except RuntimeError:
         return jsonify({"success": False, "message": "Role change could not be completed"}), 503
 
