@@ -4,7 +4,7 @@ from flask_socketio import SocketIO
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
-socketio = SocketIO()
+socketio = SocketIO(async_mode='threading')
 
 db = SQLAlchemy()
 jwt = JWTManager()

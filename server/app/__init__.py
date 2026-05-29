@@ -1,6 +1,5 @@
 from flask import Flask
 from .config import Config
-from .extensions import db, jwt, socketio
 from .extensions import db, jwt, socketio, limiter
 from flask_cors import CORS
 import cloudinary
