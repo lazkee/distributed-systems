@@ -15,6 +15,7 @@ quiz_leaderboard_bp = Blueprint("quiz-leaderboard", __name__, url_prefix="/quiz"
 base = (os.getenv("QUIZ_SERVICE_BASE_URL") or "").rstrip("/")
 QUIZ_SERVICE_BASE_URL = f"{base}/quiz"
 @quiz_leaderboard_bp.get("/<int:quiz_id>/leaderboard")
+@require_auth
 def get_leaderboard(quiz_id: int):
     try:
         url = f"{QUIZ_SERVICE_BASE_URL}/{quiz_id}/leaderboard"
