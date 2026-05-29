@@ -23,8 +23,13 @@ export function validateRegisterForm(
     return { success: false, message: "Invalid email format." };
   }
 
-  if (password.length < 6) {
-    return { success: false, message: "Password must be at least 6 characters long." };
+  const passwordRe = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{12,}$/;
+  if (!passwordRe.test(password)) {
+    return {
+      success: false,
+      message:
+        "Password must be at least 12 characters and include an uppercase letter, a lowercase letter, a digit, and a special character.",
+    };
   }
 
   const dob = new Date(dateOfBirth);

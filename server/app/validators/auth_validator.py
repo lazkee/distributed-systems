@@ -2,19 +2,26 @@ import re
 from datetime import datetime
 from app.models.user import User
 
+# Requires: ≥12 chars, ≥1 uppercase, ≥1 lowercase, ≥1 digit, ≥1 special char.
+_PASSWORD_RE = re.compile(
+    r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{12,}$'
+)
+
+_PASSWORD_POLICY_MSG = (
+    "Password must be at least 12 characters and include an uppercase letter, "
+    "a lowercase letter, a digit, and a special character."
+)
+
+
 def validate_register_data(data: dict):
-    """
-    Validates registration data.
-    Raises ValueError with a descriptive message if validation fails.
-    """
     if len(data["first_name"]) < 3 or len(data["first_name"]) > 20:
         raise ValueError("First name must be 3–20 characters long.")
-    
+
     if len(data["last_name"]) < 3 or len(data["last_name"]) > 20:
         raise ValueError("Last name must be 3–20 characters long.")
-    
-    if len(data["password"]) < 6:
-        raise ValueError("Password must be at least 6 characters.")
+
+    if not _PASSWORD_RE.match(data["password"]):
+        raise ValueError(_PASSWORD_POLICY_MSG)
     
     email_regex = r"^[^\s@]+@[^\s@]+\.[^\s@]+$"
     if not re.match(email_regex, data["email"]):
