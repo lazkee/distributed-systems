@@ -45,6 +45,7 @@ class QuizExecutionService:
 
         QuizExecutionCache.start_quiz(
             attempt_id=attempt.attempt_id,
+            player_id=player_id,
             quiz={"quiz_id": quiz.quiz_id, "title": quiz.title, "duration_seconds": quiz.duration_seconds},
             questions=[{"question_id": q.question_id, "points": q.points, "text": q.question_text} for q in questions],
             answers=[{"answer_id": a.answer_id, "question_id": a.question_id, "is_correct": a.is_correct, "text": a.answer_text} for a in answers]
@@ -59,10 +60,13 @@ class QuizExecutionService:
 
 
     @staticmethod
-    def submit_answer(attempt_id: int, question_id: int, answer_ids: list[int]):
+    def submit_answer(attempt_id: int, question_id: int, answer_ids: list[int], player_id: int):
         session = QuizExecutionCache.get_quiz(attempt_id)
         if not session:
             raise ValueError("Quiz attempt not found or expired")
+
+        if session["player_id"] != player_id:
+            raise PermissionError("Access forbidden")
 
         if datetime.utcnow() > session["expires_at"]:
             QuizExecutionCache.finish_quiz(attempt_id)
@@ -91,7 +95,15 @@ class QuizExecutionService:
 
 
     @staticmethod
-    def finish_quiz(attempt_id: int, user_email: str):
+    def finish_quiz(attempt_id: int, user_email: str, player_id: int):
+        # Verify ownership before any state mutation
+        session_check = QuizExecutionCache.get_quiz(attempt_id)
+        if not session_check:
+            raise ValueError("Quiz attempt not found or expired")
+
+        if session_check["player_id"] != player_id:
+            raise PermissionError("Access forbidden")
+
         finished_at = datetime.utcnow()
 
         session = QuizExecutionCache.finish_quiz(attempt_id)

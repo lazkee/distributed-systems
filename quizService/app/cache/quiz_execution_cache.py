@@ -7,9 +7,10 @@ class QuizExecutionCache:   # In memory cache for active quiz executions - we do
     _active_quizzes = {}
 
     @classmethod
-    def start_quiz(cls, attempt_id, quiz, questions, answers):  # cls - Class itself (like 'this' in C#)
+    def start_quiz(cls, attempt_id, quiz, questions, answers, player_id):  # cls - Class itself (like 'this' in C#)
         with cls._lock:
             cls._active_quizzes[attempt_id] = {
+                "player_id": player_id,
                 "quiz": quiz,
                 "started_at": datetime.utcnow(),
                 "expires_at": datetime.utcnow() + timedelta(seconds=quiz["duration_seconds"]),

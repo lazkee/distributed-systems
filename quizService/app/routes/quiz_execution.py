@@ -1,6 +1,7 @@
 from threading import Thread
 from flask import Blueprint, current_app, request, jsonify
 from app.middlewares.require_internal import require_internal
+from app.cache.quiz_execution_cache import QuizExecutionCache
 from app.services.quiz_execution_service import QuizExecutionService
 
 quiz_execution_bp = Blueprint(
@@ -30,13 +31,27 @@ def start_quiz():
 @quiz_execution_bp.route("/answer", methods=["POST"])
 @require_internal
 def submit_answer():
+    user_id_header = request.headers.get("X-User-Id")
+    if not user_id_header:
+        return jsonify({"success": False, "message": "Unauthorized"}), 401
+    try:
+        player_id = int(user_id_header)
+    except ValueError:
+        return jsonify({"success": False, "message": "Unauthorized"}), 401
+
     data = request.get_json()
 
-    result = QuizExecutionService.submit_answer(
-        attempt_id=int(data.get("attempt_id")),
-        question_id=int(data.get("question_id")),
-        answer_ids=list(map(int, data.get("answer_ids", [])))
-    )
+    try:
+        result = QuizExecutionService.submit_answer(
+            attempt_id=int(data.get("attempt_id")),
+            question_id=int(data.get("question_id")),
+            answer_ids=list(map(int, data.get("answer_ids", []))),
+            player_id=player_id
+        )
+    except PermissionError:
+        return jsonify({"success": False, "message": "Forbidden"}), 403
+    except ValueError as e:
+        return jsonify({"success": False, "message": str(e)}), 400
 
     return jsonify({
         "success": True,
@@ -45,17 +60,25 @@ def submit_answer():
     }), 200
 
 
-def finish_quiz_background(attempt_id, player_email, app):
-        with app.app_context():
-            try:
-                QuizExecutionService.finish_quiz(int(attempt_id), player_email)
-            except Exception:
-                app.logger.exception(f"Error finishing quiz {attempt_id}")
+def finish_quiz_background(attempt_id, player_email, player_id, app):
+    with app.app_context():
+        try:
+            QuizExecutionService.finish_quiz(int(attempt_id), player_email, player_id)
+        except Exception:
+            app.logger.exception(f"Error finishing quiz {attempt_id}")
 
 
 @quiz_execution_bp.route("/finish", methods=["POST"])
 @require_internal
 def finish_quiz():
+    user_id_header = request.headers.get("X-User-Id")
+    if not user_id_header:
+        return jsonify({"success": False, "message": "Unauthorized"}), 401
+    try:
+        player_id = int(user_id_header)
+    except ValueError:
+        return jsonify({"success": False, "message": "Unauthorized"}), 401
+
     data = request.get_json()
 
     attempt_id = data.get("attempt_id")
@@ -67,13 +90,20 @@ def finish_quiz():
             "message": "attempt_id and player_email are required"
         }), 400
 
+    # Ownership check synchronously before any background work
+    session = QuizExecutionCache.get_quiz(int(attempt_id))
+    if not session:
+        return jsonify({"success": False, "message": "Quiz attempt not found or expired"}), 404
+    if session["player_id"] != player_id:
+        return jsonify({"success": False, "message": "Forbidden"}), 403
+
     app = current_app._get_current_object()
 
     Thread(
-        target=lambda: finish_quiz_background(attempt_id, player_email, app),
+        target=lambda: finish_quiz_background(attempt_id, player_email, player_id, app),
         daemon=True
     ).start()
-    
+
     return jsonify({
         "success": True,
         "message": "Quiz finished successfully. Results will be sent via email.",
