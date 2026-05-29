@@ -5,14 +5,16 @@ services:
     container_name: drs_users_db
     image: mysql:8.0
     environment:
-      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_ROOT_PASSWORD: ${USERS_DB_ROOT_PASSWORD:-dev-root-users-db-local}
       MYSQL_DATABASE: quiz_users_db
+      MYSQL_USER: ${USERS_DB_USER:-app_user}
+      MYSQL_PASSWORD: ${USERS_DB_PASSWORD:-replace-with-users-db-password}
     expose:
       - "3306"
     volumes:
       - users_db_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-p1234"]
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$${MYSQL_ROOT_PASSWORD}"]
       interval: 3s
       timeout: 2s
       retries: 30
@@ -21,14 +23,16 @@ services:
     container_name: drs_quiz_db
     image: mysql:8.0
     environment:
-      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_ROOT_PASSWORD: ${QUIZ_DB_ROOT_PASSWORD:-dev-root-quiz-db-local}
       MYSQL_DATABASE: quiz_db
+      MYSQL_USER: ${QUIZ_DB_USER:-quiz_app_user}
+      MYSQL_PASSWORD: ${QUIZ_DB_PASSWORD:-replace-with-quiz-db-password}
     expose:
       - "3306"
     volumes:
       - quiz_db_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-p1234"]
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$${MYSQL_ROOT_PASSWORD}"]
       interval: 3s
       timeout: 2s
       retries: 30
