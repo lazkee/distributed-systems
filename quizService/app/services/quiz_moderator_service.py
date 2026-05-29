@@ -5,13 +5,14 @@ from app.models.answers import Answer
 from typing import Dict
 from app.constants.quiz_status import QuizStatus
 from app.services.quiz_service import QuizService
+from app.utils.sanitize_text import sanitize_text
 
 class QuizModeratorService:
     @staticmethod
     def create_quiz(data):
         try:
             quiz = Quiz(
-                title=data["title"],
+                title=sanitize_text(data["title"]),
                 duration_seconds=data["duration"],
                 author_id=data["author_id"],
                 status=QuizStatus.PENDING.value,
@@ -23,7 +24,7 @@ class QuizModeratorService:
             for q in data["questions"]:
                 question = Question(
                     quiz_id=quiz.quiz_id,
-                    question_text=q["text"],
+                    question_text=sanitize_text(q["text"]),
                     points=q["points"],
                 )
                 db.session.add(question)
@@ -32,7 +33,7 @@ class QuizModeratorService:
                 for a in q["answers"]:
                     answer = Answer(
                         question_id=question.question_id,
-                        answer_text=a["text"],
+                        answer_text=sanitize_text(a["text"]),
                         is_correct=a["is_correct"],
                     )
                     db.session.add(answer)
@@ -98,7 +99,7 @@ class QuizModeratorService:
         if quiz.author_id != requester_id:
             raise PermissionError("Access forbidden")
 
-        quiz.title = data.get("title", quiz.title)
+        quiz.title = sanitize_text(data.get("title", quiz.title))
         quiz.duration_seconds = data.get("duration", quiz.duration_seconds)
 
         for q_data in data.get("questions", []):
@@ -109,13 +110,13 @@ class QuizModeratorService:
                 question = Question.query.get(qid)
                 if not question:
                     continue
-                question.question_text = q_data["text"]
+                question.question_text = sanitize_text(q_data["text"])
                 question.points = q_data["points"]
             else:
                 # Create new question
                 question = Question(
                     quiz_id=quiz_id,
-                    question_text=q_data["text"],
+                    question_text=sanitize_text(q_data["text"]),
                     points=q_data["points"],
                 )
                 db.session.add(question)
@@ -129,13 +130,13 @@ class QuizModeratorService:
                     answer = Answer.query.get(aid)
                     if not answer:
                         continue
-                    answer.answer_text = a_data["text"]
+                    answer.answer_text = sanitize_text(a_data["text"])
                     answer.is_correct = a_data["is_correct"]
                 else:
                     # Create new answer
                     answer = Answer(
                         question_id=question.question_id,
-                        answer_text=a_data["text"],
+                        answer_text=sanitize_text(a_data["text"]),
                         is_correct=a_data["is_correct"],
                     )
                     db.session.add(answer)
