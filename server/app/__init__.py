@@ -1,6 +1,7 @@
 from flask import Flask
 from .config import Config
 from .extensions import db, jwt, socketio
+from .extensions import db, jwt, socketio, limiter
 from flask_cors import CORS
 import cloudinary
 
@@ -35,6 +36,7 @@ def create_app():
 
     db.init_app(app)
     jwt.init_app(app)
+    limiter.init_app(app)
     socketio.init_app(app, cors_allowed_origins=Config.FRONTEND_ORIGINS)
 
     @jwt.token_in_blocklist_loader
