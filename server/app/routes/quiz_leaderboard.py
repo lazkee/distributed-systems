@@ -41,14 +41,8 @@ def get_leaderboard(quiz_id: int):
             "data": data
         }), resp.status_code
 
-    except requests.RequestException as e:
+    except requests.RequestException:
         return jsonify({
             "success": False,
-            "message": f"Quiz service unreachable: {str(e)}"
+            "message": "Quiz service is unreachable"
         }), 503
-
-    except Exception as e:
-        return jsonify({
-            "success": False,
-            "message": str(e)
-        }), 500

@@ -17,8 +17,13 @@ auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 @limiter.limit("5 per minute")
 def register():
     data = request.get_json()
+    if not isinstance(data, dict):
+        return jsonify({"success": False, "message": "Invalid or missing JSON body"}), 400
 
-    tokens = AuthService.register_user(data)
+    try:
+        tokens = AuthService.register_user(data)
+    except ValueError as e:
+        return jsonify({"success": False, "message": str(e)}), 400
 
     response = jsonify({"success": True, "message": "User registered successfully"})
     set_access_cookies(response, tokens["access_token"])

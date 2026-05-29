@@ -65,12 +65,6 @@ def create_quiz():
             "message": "Quiz service is unreachable"
         }), 503
 
-    except Exception as e:
-        return jsonify({
-            "success": False,
-            "message": f"Server error while creating quiz: {str(e)}"
-        }), 500
-
 
 @quiz_bp.route("/<int:quiz_id>", methods=["GET"])
 def get_quiz(quiz_id: int):
@@ -109,9 +103,9 @@ def get_approved_quizzes():
 
         return jsonify(quizzes), 200
 
-    except requests.exceptions.RequestException as e:
-        return jsonify({"success": False, "message": str(e)}), 500
-    
+    except requests.exceptions.RequestException:
+        return jsonify({"success": False, "message": "Quiz service is unreachable"}), 503
+
 
 @quiz_bp.get("/pendingQuizzes")
 @require_auth
@@ -134,8 +128,8 @@ def get_pending_quizzes():
 
         return jsonify(quizzes), 200
 
-    except requests.exceptions.RequestException as e:
-        return jsonify({"success": False, "message": str(e)}), 500
+    except requests.exceptions.RequestException:
+        return jsonify({"success": False, "message": "Quiz service is unreachable"}), 503
 
 
 @quiz_bp.get("/catalog")
@@ -178,8 +172,8 @@ def get_catalog():
 
         return jsonify(catalog), 200
 
-    except requests.exceptions.RequestException as e:
-        return jsonify({"success": False, "message": str(e)}), 500
+    except requests.exceptions.RequestException:
+        return jsonify({"success": False, "message": "Quiz service is unreachable"}), 503
 
 
 @quiz_bp.get("/admin/<int:quiz_id>")
@@ -307,11 +301,11 @@ def delete_quiz(quiz_id):
 
         return jsonify(data), response.status_code
 
-    except Exception as e:
+    except requests.RequestException:
         return jsonify({
             "success": False,
-            "message": f"Server error while deleting quiz: {str(e)}"
-        }), 500
+            "message": "Quiz service is unreachable"
+        }), 503
 
 
 @quiz_bp.get("/my")
@@ -340,8 +334,8 @@ def get_my_quizzes():
 
         return jsonify(data), response.status_code
 
-    except requests.exceptions.RequestException as e:
-        return jsonify({"success": False, "message": str(e)}), 500
+    except requests.exceptions.RequestException:
+        return jsonify({"success": False, "message": "Quiz service is unreachable"}), 503
 
 
 @quiz_bp.route("/getRejected/<int:quiz_id>", methods=["GET"])

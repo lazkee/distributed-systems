@@ -80,6 +80,6 @@ class AdminService:
         response = requests.post(url, json=payload, headers=make_internal_headers())
 
         if response.status_code != 202:
-            raise Exception(f"Failed to generate report: {response.text}")
+            raise RuntimeError("Quiz service report generation failed")
         
         return response.json()
