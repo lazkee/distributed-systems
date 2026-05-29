@@ -67,6 +67,7 @@ def create_quiz():
 
 
 @quiz_bp.route("/<int:quiz_id>", methods=["GET"])
+@require_auth
 def get_quiz(quiz_id: int):
     try:
         response = requests.get(
