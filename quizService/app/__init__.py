@@ -3,7 +3,6 @@ from flask import Flask, jsonify
 from werkzeug.exceptions import HTTPException
 from .config import Config
 from .extensions import db, jwt
-from flask_cors import CORS
 
 from app.routes.quiz import quiz_bp
 from app.routes.quiz_execution import quiz_execution_bp
@@ -15,13 +14,6 @@ from app.routes.quiz_leaderboard import quiz_leaderboard_bp
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
-
-    CORS(
-        app,
-        origins=["http://localhost:5173"],
-        supports_credentials=True,
-    )
-
 
     db.init_app(app)
     jwt.init_app(app)
