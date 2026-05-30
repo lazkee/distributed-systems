@@ -271,11 +271,6 @@ def reject_quiz(quiz_id):
         }), 503
 
 
-@quiz_bp.route("/delete/<int:quiz_id>", methods=["OPTIONS"])
-def delete_quiz_options(quiz_id):
-    return "", 200 
-
-
 @quiz_bp.route("/delete/<int:quiz_id>", methods=["DELETE"])
 @require_auth
 @require_role([UserRole.ADMIN, UserRole.MODERATOR])
