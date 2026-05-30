@@ -109,7 +109,11 @@ class QuizModeratorService:
                 # Update existing question
                 question = Question.query.get(qid)
                 if not question:
-                    continue
+                    db.session.rollback()
+                    raise ValueError("Question not found")
+                if question.quiz_id != quiz_id:
+                    db.session.rollback()
+                    raise ValueError("Question does not belong to this quiz")
                 question.question_text = sanitize_text(q_data["text"])
                 question.points = q_data["points"]
             else:
@@ -129,7 +133,11 @@ class QuizModeratorService:
                     # Update existing answer
                     answer = Answer.query.get(aid)
                     if not answer:
-                        continue
+                        db.session.rollback()
+                        raise ValueError("Answer not found")
+                    if answer.question_id != question.question_id:
+                        db.session.rollback()
+                        raise ValueError("Answer does not belong to this question")
                     answer.answer_text = sanitize_text(a_data["text"])
                     answer.is_correct = a_data["is_correct"]
                 else:
