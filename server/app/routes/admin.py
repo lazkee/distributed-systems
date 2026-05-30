@@ -82,7 +82,10 @@ def generate_report():
     if not users or not isinstance(users, list):
         return jsonify({"success": False, "message": "users must be a list"}), 400
 
-    response = AdminService.generate_report(quiz_ids, admin_email, users)
+    try:
+        response = AdminService.generate_report(quiz_ids, admin_email, users)
+    except ValueError:
+        return jsonify({"success": False, "message": "One or more quiz IDs are invalid or not approved"}), 400
 
     return jsonify({
         "success": True,

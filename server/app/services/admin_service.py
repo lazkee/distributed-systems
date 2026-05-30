@@ -79,7 +79,11 @@ class AdminService:
 
         response = requests.post(url, json=payload, headers=make_internal_headers())
 
+        if response.status_code == 400:
+            message = response.json().get("message", "Invalid quiz IDs for report")
+            raise ValueError(message)
+
         if response.status_code != 202:
             raise RuntimeError("Quiz service report generation failed")
-        
+
         return response.json()

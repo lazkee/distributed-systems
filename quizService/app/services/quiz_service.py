@@ -68,6 +68,27 @@ class QuizService:
 
 
     @staticmethod
+    def validate_approved_quiz_ids(quiz_ids: list) -> None:
+        if not quiz_ids or not isinstance(quiz_ids, list):
+            raise ValueError("quiz_ids must be a non-empty list")
+
+        try:
+            int_ids = [int(qid) for qid in quiz_ids]
+        except (TypeError, ValueError):
+            raise ValueError("quiz_ids must be a list of integers")
+
+        found = Quiz.query.filter(Quiz.quiz_id.in_(int_ids)).all()
+
+        found_ids = {q.quiz_id for q in found}
+        if set(int_ids) - found_ids:
+            raise ValueError("One or more quiz IDs do not exist")
+
+        non_approved = [q for q in found if q.status != QuizStatus.APPROVED.value]
+        if non_approved:
+            raise ValueError("Reports can only be generated for approved quizzes")
+
+
+    @staticmethod
     def get_quiz_titles(quiz_ids:list[str]) -> list[Dict[str, str]]:
         quizzes = Quiz.query.filter(Quiz.quiz_id.in_(quiz_ids)).all()
         return [{"id": q.quiz_id, "title": q.title} for q in quizzes]

@@ -17,6 +17,11 @@ def generate_report():
     quiz_ids = data.get("quiz_ids")
     users = data.get("users")
 
+    try:
+        QuizService.validate_approved_quiz_ids(quiz_ids)
+    except ValueError as e:
+        return jsonify({"success": False, "message": str(e)}), 400
+
     quizzes = QuizService.get_quiz_titles(quiz_ids)
     attempts = AttemptsService.get_attempts_for_quizzes(quiz_ids)
 
