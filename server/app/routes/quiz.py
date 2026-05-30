@@ -84,7 +84,7 @@ def get_quiz(quiz_id: int):
 
 
 @quiz_bp.get("/approvedQuizzes")
-@require_auth
+@require_role([UserRole.ADMIN, UserRole.MODERATOR])
 def get_approved_quizzes():
     try:
         cached = QuizCache.get("approved_quizzes")
@@ -109,7 +109,7 @@ def get_approved_quizzes():
 
 
 @quiz_bp.get("/pendingQuizzes")
-@require_auth
+@require_role([UserRole.ADMIN, UserRole.MODERATOR])
 def get_pending_quizzes():
     try:
         cached = QuizCache.get("pending_quizzes")
