@@ -16,10 +16,14 @@ quiz_execution_bp = Blueprint(
 def start_quiz():
     data = request.get_json()
 
-    attempt = QuizExecutionService.start_quiz(
-        quiz_id = int(data.get("quiz_id")),
-        player_id = int(data.get("player_id"))
-    )
+    try:
+        attempt = QuizExecutionService.start_quiz(
+            quiz_id=int(data.get("quiz_id")),
+            player_id=int(data.get("player_id"))
+        )
+    except ValueError as e:
+        status = 409 if "active attempt" in str(e).lower() else 400
+        return jsonify({"success": False, "message": str(e)}), status
 
     return jsonify({
         "success": True,

@@ -19,6 +19,9 @@ class QuizExecutionService:
     def start_quiz(quiz_id: int, player_id: int):
         QuizExecutionCache.cleanup_expired()    # Delete useless data from cache
 
+        if QuizExecutionCache.has_active_attempt(player_id, quiz_id):
+            raise ValueError("Active attempt already exists for this quiz")
+
         quiz = Quiz.query.get(quiz_id)
         if not quiz:
             raise ValueError("Quiz not found")

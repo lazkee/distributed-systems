@@ -42,6 +42,14 @@ class QuizExecutionCache:   # In memory cache for active quiz executions - we do
         return datetime.utcnow() > quiz["expires_at"]
 
     @classmethod
+    def has_active_attempt(cls, player_id: int, quiz_id: int) -> bool:
+        with cls._lock:
+            return any(
+                session["player_id"] == player_id and session["quiz"]["quiz_id"] == quiz_id
+                for session in cls._active_quizzes.values()
+            )
+
+    @classmethod
     def finish_quiz(cls, attempt_id):
         with cls._lock:
             return cls._active_quizzes.pop(attempt_id, None)
