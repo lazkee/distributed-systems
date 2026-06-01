@@ -84,7 +84,7 @@ class QuizExecutionService:
         valid_answer_ids = [a["answer_id"] for a in session["answers"] if a["question_id"] == question_id]
         invalid_ids = [a_id for a_id in answer_ids if a_id not in valid_answer_ids]
         if invalid_ids:
-            raise ValueError(f"Invalid answer IDs for this question: {invalid_ids}")
+            raise ValueError("Invalid answer IDs submitted for this question")
 
         QuizExecutionCache.save_answer(attempt_id, question_id, answer_ids)
 
@@ -155,8 +155,8 @@ class QuizExecutionService:
                 total_points,
                 attempt.time_taken_seconds
             )
-        except Exception as e:
-            print(f"Failed to send email for attempt {attempt_id}: {e}")
+        except Exception:
+            print(f"Failed to send email for attempt {attempt_id}")
 
         return {
             "attempt_id": attempt_id,
