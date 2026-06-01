@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../../hooks/UseAuthHook";
 import { validateRegisterForm } from "../../helpers/ValidateRegisterForm";
 import type { AuthFormProps } from "../../types/auth/AuthFormProps";
+import { PrivacyPolicyModal } from "../privacy/PrivacyPolicyModal";
 
 export function RegisterForm({ authApi }: AuthFormProps) {
   const [firstName, setFirstName] = useState<string>("");
@@ -11,6 +12,7 @@ export function RegisterForm({ authApi }: AuthFormProps) {
   const [password, setPassword] = useState<string>("");
   const [country, setCountry] = useState<string>("Serbia");
   const [privacyPolicyAccepted, setPrivacyPolicyAccepted] = useState<boolean>(false);
+  const [showPrivacyModal, setShowPrivacyModal] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const { login } = useAuth();
 
@@ -52,6 +54,7 @@ export function RegisterForm({ authApi }: AuthFormProps) {
   };
 
   return (
+    <>
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900">
       <div className="w-full max-w-md p-6 bg-gray-800/90 backdrop-blur-sm rounded-2xl shadow-2xl border border-gray-700">
         <h1 className="text-2xl font-bold text-gray-100 text-center mb-6">
@@ -118,7 +121,17 @@ export function RegisterForm({ authApi }: AuthFormProps) {
               className="mt-1 w-4 h-4 accent-indigo-500 flex-shrink-0"
             />
             <span className="text-sm text-gray-300">
-              I have read and accept the Privacy Policy
+              I have read and accept the{" "}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowPrivacyModal(true);
+                }}
+                className="text-blue-400 hover:underline font-medium"
+              >
+                Privacy Notice
+              </button>
             </span>
           </label>
 
@@ -145,5 +158,10 @@ export function RegisterForm({ authApi }: AuthFormProps) {
         </p>
       </div>
     </div>
+
+    {showPrivacyModal && (
+      <PrivacyPolicyModal onClose={() => setShowPrivacyModal(false)} />
+    )}
+    </>
   );
 }
