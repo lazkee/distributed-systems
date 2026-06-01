@@ -57,4 +57,16 @@ export const usersApi: IUsersAPIService = {
             return { success: false, message, data: null };
         }
     },
+
+    async eraseMyAccount(): Promise<UserResponse<null>> {
+        try {
+            const res = await axios.delete<UserResponse<null>>(`${API_URL}/me`);
+            return { success: res.data.success, message: res.data.message, data: null };
+        } catch (error) {
+            let message = "Failed to erase account";
+            if (isAxiosError(error))
+                message = (error.response?.data as any)?.message || message;
+            return { success: false, message, data: null };
+        }
+    },
 };

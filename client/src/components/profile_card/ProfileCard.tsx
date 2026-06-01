@@ -1,15 +1,19 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import type { CloudinaryImageResponse } from "../../types/cloudinary/CloudinaryImageResponse";
 import type { UserDto } from "../../models/user/UserDto";
 import type { ProfileFormState } from "../../types/user/ProfileFormState";
 import type { ProfileCardProps } from "../../types/user/ProfileCardProps";
 import { validateChangeProfileDataForm } from "../../helpers/ValidateChangeProfileDataForm";
+import { useAuth } from "../../hooks/UseAuthHook";
 
 export function ProfileCard({
   setShowProfile,
   cloudinaryApi,
   usersApi,
 }: ProfileCardProps) {
+  const navigate = useNavigate();
+  const { logout } = useAuth();
   const [profile, setProfile] = useState<UserDto | null>(null);
   const [form, setForm] = useState<ProfileFormState>({
     firstName: "",
@@ -24,6 +28,8 @@ export function ProfileCard({
   const [saving, setSaving] = useState(false);
   const [exportingData, setExportingData] = useState(false);
   const [exportError, setExportError] = useState<string>("");
+  const [erasing, setErasing] = useState(false);
+  const [eraseError, setEraseError] = useState<string>("");
   const [error, setError] = useState<string>("");
   const [errors, setErrors] = useState<Partial<Record<keyof ProfileFormState, string>>>({});
 
@@ -108,6 +114,27 @@ export function ProfileCard({
     anchor.download = "my-data-export.json";
     anchor.click();
     URL.revokeObjectURL(url);
+  };
+
+  const handleEraseAccount = async () => {
+    const confirmed = window.confirm(
+      "This will permanently anonymise your account.\n" +
+      "Your name, email, and profile picture will be erased and cannot be recovered.\n\n" +
+      "Are you sure you want to continue?"
+    );
+    if (!confirmed) return;
+
+    setErasing(true);
+    setEraseError("");
+    const res = await usersApi.eraseMyAccount();
+    if (!res.success) {
+      setEraseError(res.message || "Failed to erase account");
+      setErasing(false);
+      return;
+    }
+
+    await logout();
+    navigate("/login");
   };
 
   const handleSave = async () => {
@@ -245,6 +272,19 @@ export function ProfileCard({
           className="px-4 py-2 bg-rose-700 hover:bg-rose-600 text-white rounded-lg font-medium shadow-md hover:shadow-lg transition-all duration-200 min-w-[120px]"
         >
           Close
+        </button>
+      </div>
+
+      <div className="mt-6 pt-4 border-t border-gray-700">
+        {eraseError && (
+          <p className="text-red-500 text-sm mb-2">{eraseError}</p>
+        )}
+        <button
+          disabled={erasing}
+          onClick={handleEraseAccount}
+          className={`px-4 py-2 rounded-lg font-medium shadow-md transition-all duration-200 w-full ${erasing ? "bg-gray-500 cursor-not-allowed text-gray-200" : "bg-red-800 hover:bg-red-700 text-white cursor-pointer"}`}
+        >
+          {erasing ? "Erasing account..." : "Erase my account"}
         </button>
       </div>
     </div>

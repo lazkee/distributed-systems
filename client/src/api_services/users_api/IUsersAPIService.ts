@@ -31,4 +31,5 @@ export interface IUsersAPIService {
     getMe(): Promise<UserResponse<UserDto>>;
     updateMe(updatedData: Partial<UserDto>): Promise<UserResponse<UserDto>>;
     exportMyData(): Promise<UserResponse<ExportData>>;
+    eraseMyAccount(): Promise<UserResponse<null>>;
 }
