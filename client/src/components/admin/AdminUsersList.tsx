@@ -2,18 +2,26 @@ import { useCallback, useEffect, useState } from "react";
 import type { UserDto } from "../../models/user/UserDto";
 import type { AdminUsersProps } from "../../types/admin/AdminUsersPageProps";
 
+const PAGE_SIZE = 20;
+
 export function AdminUsersList({ adminApi }: AdminUsersProps) {
   const [users, setUsers] = useState<UserDto[]>([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchUsers = useCallback(async () => {
+  const fetchUsers = useCallback(async (currentPage: number) => {
     setLoading(true);
     setError(null);
     try {
-      const res = await adminApi.listUsers();
-      if (res.success && res.data) setUsers(res.data);
-      else setError(res.message || "Failed to load users.");
+      const res = await adminApi.listUsers(currentPage, PAGE_SIZE);
+      if (res.success && res.data) {
+        setUsers(res.data.items);
+        setTotalPages(res.data.pages);
+      } else {
+        setError(res.message || "Failed to load users.");
+      }
     } catch (e: any) {
       setError(e?.message || "Failed to load users.");
     } finally {
@@ -22,8 +30,8 @@ export function AdminUsersList({ adminApi }: AdminUsersProps) {
   }, [adminApi]);
 
   useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
+    fetchUsers(page);
+  }, [fetchUsers, page]);
 
   const handleDeleteUser = async (userId: number) => {
     const confirmed = window.confirm("Are you sure you want to delete this user?");
@@ -31,7 +39,7 @@ export function AdminUsersList({ adminApi }: AdminUsersProps) {
     try {
       const res = await adminApi.deleteUser(userId.toString());
       if (res.success) {
-        setUsers((prev) => prev.filter((u) => u.id !== userId));
+        fetchUsers(page);
       } else {
         alert(res.message || "Delete failed.");
       }
@@ -61,6 +69,7 @@ export function AdminUsersList({ adminApi }: AdminUsersProps) {
   return (
     <div>
       <div className="overflow-x-auto rounded-xl ring-1 ring-gray-700 bg-gray-900 shadow-lg">
+
         <table className="min-w-full border-separate border-spacing-0">
           <thead className="bg-gray-800">
             <tr>
@@ -115,6 +124,28 @@ export function AdminUsersList({ adminApi }: AdminUsersProps) {
             )}
           </tbody>
         </table>
+      </div>
+
+      <div className="flex items-center justify-between mt-4 px-1">
+        <button
+          type="button"
+          disabled={page <= 1}
+          onClick={() => setPage((p) => p - 1)}
+          className={`px-4 py-2 text-sm rounded-lg font-medium transition-colors ${page <= 1 ? "bg-gray-700 text-gray-500 cursor-not-allowed" : "bg-gray-700 hover:bg-gray-600 text-gray-100 cursor-pointer"}`}
+        >
+          Previous
+        </button>
+        <span className="text-sm text-gray-400">
+          Page {page} of {totalPages}
+        </span>
+        <button
+          type="button"
+          disabled={page >= totalPages}
+          onClick={() => setPage((p) => p + 1)}
+          className={`px-4 py-2 text-sm rounded-lg font-medium transition-colors ${page >= totalPages ? "bg-gray-700 text-gray-500 cursor-not-allowed" : "bg-gray-700 hover:bg-gray-600 text-gray-100 cursor-pointer"}`}
+        >
+          Next
+        </button>
       </div>
     </div>
   );

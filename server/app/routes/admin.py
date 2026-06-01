@@ -13,11 +13,14 @@ admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 @admin_bp.get("/users")
 @require_role([UserRole.ADMIN])
 def list_users():
-    users = AdminService.list_all_users()
+    page = request.args.get("page", 1, type=int)
+    page_size = request.args.get("page_size", 20, type=int)
+
+    result = AdminService.list_all_users(page, page_size)
 
     return jsonify({
         "success": True,
-        "data": users
+        "data": result
     }), 200
 
 

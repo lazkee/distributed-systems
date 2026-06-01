@@ -1,3 +1,4 @@
+import math
 from multiprocessing import Process
 from typing import List, Dict, Any
 from app.models.user import User
@@ -14,10 +15,22 @@ class AdminService:
 
    #all users
     @staticmethod
-    def list_all_users() -> List[Dict[str, Any]]:
-        users = User.query.all()
+    def list_all_users(page: int, page_size: int) -> Dict[str, Any]:
+        page = max(1, page)
+        page_size = max(1, min(100, page_size))
 
-        return [
+        total = User.query.count()
+        pages = max(1, math.ceil(total / page_size))
+
+        users = (
+            User.query
+            .order_by(User.id)
+            .offset((page - 1) * page_size)
+            .limit(page_size)
+            .all()
+        )
+
+        items = [
             {
                 "id": user.id,
                 "email": user.email,
@@ -30,6 +43,14 @@ class AdminService:
             }
             for user in users
         ]
+
+        return {
+            "items": items,
+            "page": page,
+            "page_size": page_size,
+            "total": total,
+            "pages": pages,
+        }
 
     #change user role
     @staticmethod
