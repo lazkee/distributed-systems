@@ -5,9 +5,6 @@ export function validateRegisterForm(
   lastName: string,
   email: string,
   password: string,
-  dateOfBirth: string,
-  street: string,
-  streetNumber: string,
   privacyPolicyAccepted: boolean
 ): ValidationResult {
 
@@ -35,19 +32,6 @@ export function validateRegisterForm(
       message:
         "Password must be at least 12 characters and include an uppercase letter, a lowercase letter, a digit, and a special character.",
     };
-  }
-
-  const dob = new Date(dateOfBirth);
-  if (isNaN(dob.getTime()) || dob > new Date()) {
-    return { success: false, message: "Invalid date of birth." };
-  }
-
-  if (street.length < 3) {
-    return { success: false, message: "Street must be at least 3 characters." };
-  }
-
-  if (streetNumber.trim() === "") {
-    return { success: false, message: "Street number is required." };
   }
 
   return { success: true };

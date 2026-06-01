@@ -63,11 +63,7 @@ class UserService:
             "email": getattr(user, "email", None),
             "first_name": getattr(user, "first_name", None),
             "last_name": getattr(user, "last_name", None),
-            "date_of_birth": user.date_of_birth.isoformat() if getattr(user, "date_of_birth", None) else None,
-            "gender": getattr(user, "gender", None),
             "country": getattr(user, "country", None),
-            "street": getattr(user, "street", None),
-            "street_number": getattr(user, "street_number", None),
             "role": getattr(user, "role", None),
             "profile_picture_url": getattr(user, "profile_picture_url", None),
         }

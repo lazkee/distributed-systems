@@ -15,11 +15,7 @@ export function ProfileCard({
     firstName: "",
     lastName: "",
     email: "",
-    dateOfBirth: "",
-    gender: "",
     country: "",
-    street: "",
-    streetNumber: "",
   });
 
   const [profilePicture, setProfilePicture] = useState<string>("");
@@ -35,11 +31,7 @@ export function ProfileCard({
       profile.firstName !== form.firstName ||
       profile.lastName !== form.lastName ||
       profile.email !== form.email ||
-      profile.dateOfBirth !== form.dateOfBirth ||
-      (profile.gender ?? "") !== form.gender ||
-      profile.country !== form.country ||
-      profile.street !== form.street ||
-      profile.streetNumber !== form.streetNumber
+      profile.country !== form.country
     );
   }, [profile, form]);
 
@@ -64,11 +56,7 @@ export function ProfileCard({
         firstName: dto.firstName ?? "",
         lastName: dto.lastName ?? "",
         email: dto.email ?? "",
-        dateOfBirth: dto.dateOfBirth ?? "",
-        gender: (dto.gender === "Male" || dto.gender === "Female" ? dto.gender : "") as ProfileFormState["gender"],
         country: dto.country ?? "",
-        street: dto.street ?? "",
-        streetNumber: dto.streetNumber ?? "",
       });
       setLoadingProfile(false);
     };
@@ -77,18 +65,10 @@ export function ProfileCard({
   }, [usersApi]);
 
   const onChange =
-    (field: keyof Omit<ProfileFormState, "gender" | "dateOfBirth">) =>
+    (field: keyof ProfileFormState) =>
       (e: React.ChangeEvent<HTMLInputElement>) => {
         setForm((prev) => ({ ...prev, [field]: e.target.value }));
       };
-
-  const onDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm((prev) => ({ ...prev, dateOfBirth: e.target.value }));
-  };
-
-  const onGenderChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setForm((prev) => ({ ...prev, gender: e.target.value as ProfileFormState["gender"] }));
-  };
 
   const handleChangePicture = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
@@ -126,11 +106,7 @@ export function ProfileCard({
     if (profile.firstName !== form.firstName) updates.firstName = form.firstName;
     if (profile.lastName !== form.lastName) updates.lastName = form.lastName;
     if (profile.email !== form.email) updates.email = form.email;
-    if (profile.dateOfBirth !== form.dateOfBirth) updates.dateOfBirth = form.dateOfBirth;
-    if ((profile.gender ?? "") !== form.gender) updates.gender = form.gender;
     if (profile.country !== form.country) updates.country = form.country;
-    if (profile.street !== form.street) updates.street = form.street;
-    if (profile.streetNumber !== form.streetNumber) updates.streetNumber = form.streetNumber;
 
     const res = await usersApi.updateMe(updates);
 
@@ -146,11 +122,7 @@ export function ProfileCard({
       firstName: dto.firstName ?? "",
       lastName: dto.lastName ?? "",
       email: dto.email ?? "",
-      dateOfBirth: dto.dateOfBirth ?? "",
-      gender: (dto.gender === "Male" || dto.gender === "Female" ? dto.gender : "") as ProfileFormState["gender"],
       country: dto.country ?? "",
-      street: dto.street ?? "",
-      streetNumber: dto.streetNumber ?? "",
     });
     setSaving(false);
     setErrors({});
@@ -217,37 +189,9 @@ export function ProfileCard({
         </label>
 
         <label className="text-gray-100">
-          Date of Birth
-          <input type="date" value={form.dateOfBirth} onChange={onDateChange} className="w-full mt-1 px-3 py-2 rounded-lg bg-gray-700 text-gray-100 border border-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-150" />
-          {errors.dateOfBirth && <p className="text-red-500 text-sm mt-1">{errors.dateOfBirth}</p>}
-        </label>
-
-        <label className="text-gray-100">
-          Gender
-          <select value={form.gender} onChange={onGenderChange} className="w-full mt-1 px-3 py-2 rounded-lg bg-gray-700 text-gray-100 border border-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-150">
-            <option value="">Select...</option>
-            <option value="Male">Male</option>
-            <option value="Female">Female</option>
-          </select>
-          {errors.gender && <p className="text-red-500 text-sm mt-1">{errors.gender}</p>}
-        </label>
-
-        <label className="text-gray-100">
           Country
           <input value={form.country} onChange={onChange("country")} className="w-full mt-1 px-3 py-2 rounded-lg bg-gray-700 text-gray-100 placeholder-gray-400 border border-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-150" />
           {errors.country && <p className="text-red-500 text-sm mt-1">{errors.country}</p>}
-        </label>
-
-        <label className="text-gray-100">
-          Street
-          <input value={form.street} onChange={onChange("street")} className="w-full mt-1 px-3 py-2 rounded-lg bg-gray-700 text-gray-100 placeholder-gray-400 border border-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-150" />
-          {errors.street && <p className="text-red-500 text-sm mt-1">{errors.street}</p>}
-        </label>
-
-        <label className="text-gray-100">
-          Street Number
-          <input value={form.streetNumber} onChange={onChange("streetNumber")} className="w-full mt-1 px-3 py-2 rounded-lg bg-gray-700 text-gray-100 placeholder-gray-400 border border-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-150" />
-          {errors.streetNumber && <p className="text-red-500 text-sm mt-1">{errors.streetNumber}</p>}
         </label>
 
         <div className="mt-1 text-gray-300">

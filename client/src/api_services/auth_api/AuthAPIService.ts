@@ -22,18 +22,14 @@ export const authApi: IAuthAPIService = {
         }
     },
 
-    async register(firstName: string, lastName: string, email: string, password: string, dateOfBirth: Date, gender: string, country: string, street: string, streetNumber: string, privacyPolicyAccepted: boolean): Promise<AuthResponse> {
+    async register(firstName: string, lastName: string, email: string, password: string, country: string, privacyPolicyAccepted: boolean): Promise<AuthResponse> {
         try {
             const payload = {
                 first_name: firstName,
                 last_name: lastName,
                 email,
                 password,
-                date_of_birth: dateOfBirth.toISOString().split("T")[0],
-                gender,
                 country,
-                street,
-                street_number: streetNumber,
                 privacy_policy_accepted: privacyPolicyAccepted,
             };
             const res = await axios.post<AuthResponse>(

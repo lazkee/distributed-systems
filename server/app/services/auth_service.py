@@ -17,11 +17,7 @@ class AuthService:
             first_name=data["first_name"],
             last_name=data["last_name"],
             email=data["email"],
-            date_of_birth=data["date_of_birth"],
-            gender=data["gender"],
             country=data["country"],
-            street=data["street"],
-            street_number=data["street_number"],
             role=UserRole.PLAYER.value,
             consent_given_at=datetime.utcnow()
         )

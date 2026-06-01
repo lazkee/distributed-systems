@@ -9,11 +9,7 @@ export function RegisterForm({ authApi }: AuthFormProps) {
   const [lastName, setLastName] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
-  const [dateOfBirth, setDateOfBirth] = useState<string>("");
-  const [gender, setGender] = useState<string>("Male");
   const [country, setCountry] = useState<string>("Serbia");
-  const [street, setStreet] = useState<string>("");
-  const [streetNumber, setStreetNumber] = useState<string>("");
   const [privacyPolicyAccepted, setPrivacyPolicyAccepted] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const { login } = useAuth();
@@ -28,9 +24,6 @@ export function RegisterForm({ authApi }: AuthFormProps) {
       lastName,
       email,
       password,
-      dateOfBirth,
-      street,
-      streetNumber,
       privacyPolicyAccepted
     );
 
@@ -44,11 +37,7 @@ export function RegisterForm({ authApi }: AuthFormProps) {
       lastName,
       email,
       password,
-      new Date(dateOfBirth),
-      gender,
       country,
-      street,
-      streetNumber,
       privacyPolicyAccepted
     );
 
@@ -96,8 +85,6 @@ export function RegisterForm({ authApi }: AuthFormProps) {
             type="text"
             placeholder="Email"
             value={email}
-            min={3}
-            max={20}
             required
             onChange={(e) => setEmail(e.target.value)}
             className="w-full px-5 py-3 border border-gray-600 rounded-lg bg-gray-700 text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-150"
@@ -113,57 +100,12 @@ export function RegisterForm({ authApi }: AuthFormProps) {
             className="w-full px-5 py-3 border border-gray-600 rounded-lg bg-gray-700 text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-150"
           />
 
-          <div className="relative">
-            <input
-              type="date"
-              value={dateOfBirth}
-              required
-              onChange={(e) => setDateOfBirth(e.target.value)}
-              className="w-full px-5 py-3 border border-gray-600 rounded-lg bg-gray-700 text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-150 appearance-none cursor-pointer"
-              style={{ colorScheme: 'dark' }}
-            />
-          </div>
-
-
-          <select
-            value={gender}
-            onChange={(e) => setGender(e.target.value)}
-            className="w-full px-5 py-3 border border-gray-600 rounded-lg bg-gray-700 text-gray-100 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-150">
-            <option value="Male">Male</option>
-            <option value="Female">Female</option>
-          </select>
-
-
           <input
             type="text"
             placeholder="Country"
             value={country}
-            min={3}
-            max={20}
             required
             onChange={(e) => setCountry(e.target.value)}
-            className="w-full px-5 py-3 border border-gray-600 rounded-lg bg-gray-700 text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-150"
-          />
-
-          <input
-            type="text"
-            placeholder="Street"
-            value={street}
-            min={3}
-            max={20}
-            required
-            onChange={(e) => setStreet(e.target.value)}
-            className="w-full px-5 py-3 border border-gray-600 rounded-lg bg-gray-700 text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-150"
-          />
-
-          <input
-            type="text"
-            placeholder="Street Number"
-            value={streetNumber}
-            min={3}
-            max={20}
-            required
-            onChange={(e) => setStreetNumber(e.target.value)}
             className="w-full px-5 py-3 border border-gray-600 rounded-lg bg-gray-700 text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-150"
           />
 
@@ -171,7 +113,7 @@ export function RegisterForm({ authApi }: AuthFormProps) {
             <input
               type="checkbox"
               checked={privacyPolicyAccepted}
-              required 
+              required
               onChange={(e) => setPrivacyPolicyAccepted(e.target.checked)}
               className="mt-1 w-4 h-4 accent-indigo-500 flex-shrink-0"
             />

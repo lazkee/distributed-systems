@@ -8,6 +8,6 @@ export type WsTokenResponse = {
 
 export interface IAuthAPIService {
     login(email: string, password: string): Promise<AuthResponse>;
-    register(firstName: string, lastName: string, email: string, password: string, dateOfBirth: Date, gender: string, country: string, street: string, streetNumber: string, privacyPolicyAccepted: boolean): Promise<AuthResponse>;
+    register(firstName: string, lastName: string, email: string, password: string, country: string, privacyPolicyAccepted: boolean): Promise<AuthResponse>;
     getWebSocketToken(): Promise<WsTokenResponse>;
 }

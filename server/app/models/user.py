@@ -1,5 +1,4 @@
 from app.extensions import db
-from datetime import date
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from app.constants.user_roles import UserRole
@@ -15,12 +14,7 @@ class User(db.Model):
     email = db.Column(db.String(255), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
 
-    date_of_birth = db.Column(db.Date, nullable=False)
-    gender = db.Column(db.String(10), nullable=False)
-
     country = db.Column(db.String(100), nullable=False)
-    street = db.Column(db.String(100), nullable=False)
-    street_number = db.Column(db.String(20), nullable=False)
 
     role = db.Column(db.String(20), default=UserRole.PLAYER.value)  # Player | Moderator | Admin
 

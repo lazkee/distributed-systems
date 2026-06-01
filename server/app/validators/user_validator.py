@@ -1,8 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, date
-from typing import Any, Dict, Optional, Set
+from typing import Any, Dict, Set
 import re
 
 
@@ -13,12 +12,8 @@ import re
 ALLOWED_PROFILE_FIELDS: Set[str] = {
     "first_name",
     "last_name",
-    "date_of_birth",
-    "gender",
     "email",
     "country",
-    "street",
-    "street_number",
 }
 
 _EMAIL_RE = re.compile(r"^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$")
@@ -45,13 +40,6 @@ def _is_non_empty_string(value: Any) -> bool:
 
 def _is_valid_email(value: str) -> bool:
     return bool(_EMAIL_RE.match(value))
-
-
-def _parse_date_yyyy_mm_dd(value: str) -> Optional[date]:
-    try:
-        return datetime.strptime(value, "%Y-%m-%d").date()
-    except Exception:
-        return None
 
 
 # -------------------------
@@ -97,15 +85,7 @@ def validate_patch_me(payload: Any) -> ValidationResult:
         # -------------------------
         # String fields
         # -------------------------
-        if key in {
-            "first_name",
-            "last_name",
-            "gender",
-            "email",
-            "country",
-            "street",
-            "street_number",
-        }:
+        if key in {"first_name", "last_name", "email", "country"}:
             if value is None:
                 data[key] = None
                 continue
@@ -123,26 +103,6 @@ def validate_patch_me(payload: Any) -> ValidationResult:
                 cleaned = cleaned.lower()
 
             data[key] = cleaned
-            continue
-
-        # -------------------------
-        # Date field
-        # -------------------------
-        if key == "date_of_birth":
-            if value is None:
-                data[key] = None
-                continue
-
-            if not isinstance(value, str):
-                errors[key] = "Must be a string in YYYY-MM-DD format"
-                continue
-
-            parsed = _parse_date_yyyy_mm_dd(value.strip())
-            if not parsed:
-                errors[key] = "Invalid format. Use YYYY-MM-DD"
-                continue
-
-            data[key] = parsed
             continue
 
         # Should never happen (defensive)

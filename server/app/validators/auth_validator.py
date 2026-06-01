@@ -1,5 +1,4 @@
 import re
-from datetime import datetime
 from app.models.user import User
 
 # Requires: ≥12 chars, ≥1 uppercase, ≥1 lowercase, ≥1 digit, ≥1 special char.
@@ -32,11 +31,3 @@ def validate_register_data(data: dict):
     
     if User.query.filter_by(email=data["email"]).first():
         raise ValueError("Email already exists.")
-    
-    try:
-        dob = datetime.fromisoformat(data["date_of_birth"])
-    except ValueError:
-        raise ValueError("Invalid date of birth format.")
-    
-    if dob > datetime.utcnow():
-        raise ValueError("Date of birth cannot be in the future.")
