@@ -2,8 +2,12 @@ from __future__ import annotations
 
 from typing import Any, Dict, Optional
 
+import requests as http_requests
+
 from app.extensions import db
 from app.models.user import User
+from app.config import Config
+from app.utils.internal_headers import make_internal_headers
 
 
 class UserService:
@@ -68,6 +72,47 @@ class UserService:
             "profile_picture_url": getattr(user, "profile_picture_url", None),
         }
     
+    @staticmethod
+    def export_my_data(user_id: int) -> Dict[str, Any]:
+        user = UserService._get_user_or_none(user_id)
+        if not user:
+            return {"success": False, "message": "User not found", "status": 404}
+
+        profile = {
+            "id": user.id,
+            "email": user.email,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "country": getattr(user, "country", None),
+            "role": user.role,
+            "consent_given_at": user.consent_given_at.isoformat() if user.consent_given_at else None,
+            "profile_picture_url": getattr(user, "profile_picture_url", None),
+        }
+
+        url = f"{Config.QUIZ_SERVICE_BASE_URL}/quiz-execution/user/{user_id}/export"
+        try:
+            resp = http_requests.get(
+                url,
+                headers=make_internal_headers(user_id=user_id),
+                timeout=10,
+            )
+            if resp.status_code == 200:
+                quiz_attempts = resp.json().get("data", [])
+            else:
+                quiz_attempts = []
+        except http_requests.RequestException:
+            return {"success": False, "message": "Quiz service is unavailable", "status": 503}
+
+        return {
+            "success": True,
+            "message": "Data export successful",
+            "data": {
+                "profile": profile,
+                "quiz_attempts": quiz_attempts,
+            },
+            "status": 200,
+        }
+
     @staticmethod
     def get_all_user_emails() -> list[dict]:
         users = User.query.all()

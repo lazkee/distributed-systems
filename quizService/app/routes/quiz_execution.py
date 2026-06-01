@@ -3,12 +3,27 @@ from flask import Blueprint, current_app, request, jsonify
 from app.middlewares.require_internal import require_internal
 from app.cache.quiz_execution_cache import QuizExecutionCache
 from app.services.quiz_execution_service import QuizExecutionService
+from app.services.quiz_attempts_service import AttemptsService
 
 quiz_execution_bp = Blueprint(
     "quiz_execution",
     __name__,
     url_prefix="/quiz-execution"
 )
+
+
+@quiz_execution_bp.get("/user/<int:user_id>/export")
+@require_internal
+def export_user_attempts(user_id: int):
+    header_user_id = request.headers.get("X-User-Id")
+    try:
+        if int(header_user_id) != user_id:
+            return jsonify({"success": False, "message": "Forbidden"}), 403
+    except (TypeError, ValueError):
+        return jsonify({"success": False, "message": "Forbidden"}), 403
+
+    attempts = AttemptsService.get_attempts_for_user_export(user_id)
+    return jsonify({"success": True, "data": attempts}), 200
 
 
 @quiz_execution_bp.route("/start", methods=["POST"])

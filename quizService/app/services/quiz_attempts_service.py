@@ -30,6 +30,27 @@ class AttemptsService:
         ]
 
     @staticmethod
+    def get_attempts_for_user_export(user_id: int) -> list[dict]:
+        attempts = (
+            QuizAttempt.query
+            .filter(QuizAttempt.player_id == user_id)
+            .order_by(QuizAttempt.started_at.desc())
+            .all()
+        )
+        return [
+            {
+                "attempt_id": a.attempt_id,
+                "quiz_id": a.quiz_id,
+                "started_at": a.started_at.isoformat() if a.started_at else None,
+                "finished_at": a.finished_at.isoformat() if a.finished_at else None,
+                "score": a.score,
+                "time_taken_seconds": a.time_taken_seconds,
+                "status": a.status,
+            }
+            for a in attempts
+        ]
+
+    @staticmethod
     def get_player_ids_for_quizzes(quiz_ids: list[int]) -> list[int]:
         rows = (
             QuizAttempt.query

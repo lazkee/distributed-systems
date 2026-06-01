@@ -47,6 +47,15 @@ def patch_me():
 
 
 
+@user_bp.get("/me/export")
+@require_auth
+def export_my_data():
+    user_id = int(get_jwt_identity())
+    result = UserService.export_my_data(user_id)
+    status = result.pop("status", 200)
+    return jsonify(result), status
+
+
 @user_bp.post("/set-profile-picture")
 @require_auth
 def upload_profile_picture():
