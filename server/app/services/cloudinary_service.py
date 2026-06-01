@@ -64,3 +64,7 @@ class CloudinaryService:
         db.session.commit()
 
         return {"url": upload_result["secure_url"]}
+
+    @staticmethod
+    def delete_profile_picture(public_id: str) -> None:
+        cloudinary.uploader.destroy(public_id, resource_type="image")

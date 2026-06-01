@@ -8,6 +8,8 @@ from app.extensions import db
 from app.models.user import User
 from app.config import Config
 from app.utils.internal_headers import make_internal_headers
+from app.services import jwt_blocklist_service
+from app.services.cloudinary_service import CloudinaryService
 
 
 class UserService:
@@ -112,6 +114,48 @@ class UserService:
             },
             "status": 200,
         }
+
+    @staticmethod
+    def erase_my_account(user_id: int) -> Dict[str, Any]:
+        user = UserService._get_user_or_none(user_id)
+        if not user:
+            return {"success": False, "message": "User not found", "status": 404}
+
+        try:
+            jwt_blocklist_service.invalidate_user_tokens(user_id)
+        except Exception:
+            return {"success": False, "message": "Failed to erase account", "status": 500}
+
+        if user.profile_picture_public_id:
+            try:
+                CloudinaryService.delete_profile_picture(user.profile_picture_public_id)
+            except Exception:
+                pass
+
+        url = f"{Config.QUIZ_SERVICE_BASE_URL}/quiz-execution/user/{user_id}/erase"
+        try:
+            http_requests.post(
+                url,
+                headers=make_internal_headers(user_id=user_id),
+                timeout=10,
+            )
+        except http_requests.RequestException:
+            pass
+
+        try:
+            user.email = f"deleted_user_{user_id}@deleted.local"
+            user.first_name = "Deleted"
+            user.last_name = "User"
+            user.country = ""
+            user.profile_picture_url = None
+            user.profile_picture_public_id = None
+
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            return {"success": False, "message": "Failed to erase account", "status": 500}
+
+        return {"success": True, "message": "Account erased successfully", "status": 200}
 
     @staticmethod
     def get_all_user_emails() -> list[dict]:

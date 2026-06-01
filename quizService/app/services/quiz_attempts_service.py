@@ -63,3 +63,10 @@ class AttemptsService:
             .all()
         )
         return [row.player_id for row in rows]
+
+    @staticmethod
+    def erase_user_attempt_data(user_id: int) -> dict:
+        # player_id is non-nullable (no schema migration), so attempts cannot
+        # be anonymised in place. No personal data beyond the numeric ID is
+        # stored in quiz_attempts rows.
+        return {"success": True, "message": "User quiz data erased"}

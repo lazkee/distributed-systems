@@ -26,6 +26,20 @@ def export_user_attempts(user_id: int):
     return jsonify({"success": True, "data": attempts}), 200
 
 
+@quiz_execution_bp.post("/user/<int:user_id>/erase")
+@require_internal
+def erase_user_data(user_id: int):
+    header_user_id = request.headers.get("X-User-Id")
+    try:
+        if int(header_user_id) != user_id:
+            return jsonify({"success": False, "message": "Forbidden"}), 403
+    except (TypeError, ValueError):
+        return jsonify({"success": False, "message": "Forbidden"}), 403
+
+    result = AttemptsService.erase_user_attempt_data(user_id)
+    return jsonify(result), 200
+
+
 @quiz_execution_bp.route("/start", methods=["POST"])
 @require_internal
 def start_quiz():

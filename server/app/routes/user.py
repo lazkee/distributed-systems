@@ -47,6 +47,15 @@ def patch_me():
 
 
 
+@user_bp.delete("/me")
+@require_auth
+def erase_me():
+    user_id = int(get_jwt_identity())
+    result = UserService.erase_my_account(user_id)
+    status = result.pop("status", 200)
+    return jsonify(result), status
+
+
 @user_bp.get("/me/export")
 @require_auth
 def export_my_data():
