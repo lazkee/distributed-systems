@@ -1,10 +1,8 @@
 from flask import Blueprint, request, jsonify
+from flask_jwt_extended import get_jwt
 from app.middlewares.require_role import require_role
 from app.constants.user_roles import UserRole
 from app.services.admin_service import AdminService
-from app.services.admin_service import AdminService
-from app.constants.user_roles import UserRole
-from flask_jwt_extended import get_jwt
 from app.services.user_service import UserService
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")

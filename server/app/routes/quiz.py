@@ -1,6 +1,6 @@
 import os
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
+from flask_jwt_extended import get_jwt_identity, get_jwt
 import requests
 from app.extensions import socketio
 from app.constants.user_roles import UserRole
@@ -18,15 +18,9 @@ QUIZ_SERVICE_BASE_URL = f"{base}/quiz"
 
 
 @quiz_bp.route("", methods=["POST"])
-@jwt_required()
+@require_role([UserRole.MODERATOR])
 def create_quiz():
     try:
-        if get_jwt()["role"] != UserRole.MODERATOR.value:
-            return jsonify({
-                "success": False,
-                "message": "Forbidden"
-            }), 403
-
         payload = dict(request.get_json(silent=True) or {})
         payload.pop("author_id", None)
 
@@ -200,7 +194,6 @@ def get_quiz_for_admin(quiz_id: int):
 
 
 @quiz_bp.route("/admin/<int:quiz_id>/approve", methods=["PUT"])
-@require_auth
 @require_role([UserRole.ADMIN])
 def approve_quiz(quiz_id):
     try:
@@ -224,7 +217,6 @@ def approve_quiz(quiz_id):
 
 
 @quiz_bp.route("/admin/<int:quiz_id>/reject", methods=["PUT"])
-@require_auth
 @require_role([UserRole.ADMIN])
 def reject_quiz(quiz_id):
     data = request.get_json()
@@ -272,7 +264,6 @@ def reject_quiz(quiz_id):
 
 
 @quiz_bp.route("/delete/<int:quiz_id>", methods=["DELETE"])
-@require_auth
 @require_role([UserRole.ADMIN, UserRole.MODERATOR])
 def delete_quiz(quiz_id):
     try:
@@ -305,7 +296,6 @@ def delete_quiz(quiz_id):
 
 
 @quiz_bp.get("/my")
-@require_auth
 @require_role([UserRole.MODERATOR])
 def get_my_quizzes():
     try:
@@ -335,7 +325,6 @@ def get_my_quizzes():
 
 
 @quiz_bp.route("/getRejected/<int:quiz_id>", methods=["GET"])
-@require_auth
 @require_role([UserRole.MODERATOR])
 def get_rejected_quiz_for_moderator(quiz_id: int):
     try:
@@ -358,7 +347,6 @@ def get_rejected_quiz_for_moderator(quiz_id: int):
 
 
 @quiz_bp.route("/edit/<int:quiz_id>", methods=["PUT"])
-@require_auth
 @require_role([UserRole.MODERATOR])
 def edit_quiz(quiz_id: int):
     try:
