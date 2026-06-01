@@ -7,8 +7,13 @@ export function validateRegisterForm(
   password: string,
   dateOfBirth: string,
   street: string,
-  streetNumber: string
+  streetNumber: string,
+  privacyPolicyAccepted: boolean
 ): ValidationResult {
+
+  if (!privacyPolicyAccepted) {
+    return { success: false, message: "You must accept the privacy policy to register." };
+  }
 
   if (firstName.length < 3 || firstName.length > 20) {
     return { success: false, message: "First name must be 3–20 characters long." };

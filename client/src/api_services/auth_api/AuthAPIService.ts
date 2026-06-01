@@ -22,7 +22,7 @@ export const authApi: IAuthAPIService = {
         }
     },
 
-    async register(firstName: string, lastName: string, email: string, password: string, dateOfBirth: Date, gender: string, country: string, street: string, streetNumber: string): Promise<AuthResponse> {
+    async register(firstName: string, lastName: string, email: string, password: string, dateOfBirth: Date, gender: string, country: string, street: string, streetNumber: string, privacyPolicyAccepted: boolean): Promise<AuthResponse> {
         try {
             const payload = {
                 first_name: firstName,
@@ -34,6 +34,7 @@ export const authApi: IAuthAPIService = {
                 country,
                 street,
                 street_number: streetNumber,
+                privacy_policy_accepted: privacyPolicyAccepted,
             };
             const res = await axios.post<AuthResponse>(
                 `${API_URL}/register`,

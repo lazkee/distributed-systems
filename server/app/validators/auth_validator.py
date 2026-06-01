@@ -14,6 +14,9 @@ _PASSWORD_POLICY_MSG = (
 
 
 def validate_register_data(data: dict):
+    if not data.get("privacy_policy_accepted"):
+        raise ValueError("You must accept the privacy policy to register.")
+
     if len(data["first_name"]) < 3 or len(data["first_name"]) > 20:
         raise ValueError("First name must be 3–20 characters long.")
 

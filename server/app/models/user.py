@@ -30,6 +30,8 @@ class User(db.Model):
     profile_picture_url = db.Column(db.String(500), nullable=True)
     profile_picture_public_id = db.Column(db.String(255), nullable=True)
 
+    consent_given_at = db.Column(db.DateTime, nullable=False)
+
     def __repr__(self): #this is something like ToString
         return f"<User {self.email}>"
     

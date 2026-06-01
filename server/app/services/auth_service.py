@@ -22,7 +22,8 @@ class AuthService:
             country=data["country"],
             street=data["street"],
             street_number=data["street_number"],
-            role=UserRole.PLAYER.value
+            role=UserRole.PLAYER.value,
+            consent_given_at=datetime.utcnow()
         )
 
         user.set_password(data["password"])

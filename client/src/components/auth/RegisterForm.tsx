@@ -14,6 +14,7 @@ export function RegisterForm({ authApi }: AuthFormProps) {
   const [country, setCountry] = useState<string>("Serbia");
   const [street, setStreet] = useState<string>("");
   const [streetNumber, setStreetNumber] = useState<string>("");
+  const [privacyPolicyAccepted, setPrivacyPolicyAccepted] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const { login } = useAuth();
 
@@ -29,7 +30,8 @@ export function RegisterForm({ authApi }: AuthFormProps) {
       password,
       dateOfBirth,
       street,
-      streetNumber
+      streetNumber,
+      privacyPolicyAccepted
     );
 
     if (!validationResult.success) {
@@ -46,7 +48,8 @@ export function RegisterForm({ authApi }: AuthFormProps) {
       gender,
       country,
       street,
-      streetNumber
+      streetNumber,
+      privacyPolicyAccepted
     );
 
     console.log("Auth result:", authResult);
@@ -163,6 +166,19 @@ export function RegisterForm({ authApi }: AuthFormProps) {
             onChange={(e) => setStreetNumber(e.target.value)}
             className="w-full px-5 py-3 border border-gray-600 rounded-lg bg-gray-700 text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-150"
           />
+
+          <label className="flex items-start gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={privacyPolicyAccepted}
+              required 
+              onChange={(e) => setPrivacyPolicyAccepted(e.target.checked)}
+              className="mt-1 w-4 h-4 accent-indigo-500 flex-shrink-0"
+            />
+            <span className="text-sm text-gray-300">
+              I have read and accept the Privacy Policy
+            </span>
+          </label>
 
           {errorMessage && (
             <p className="text-red-500 text-sm">{errorMessage}</p>
