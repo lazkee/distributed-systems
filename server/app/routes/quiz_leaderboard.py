@@ -25,8 +25,8 @@ def get_leaderboard(quiz_id: int):
 
         data = payload.get("data", [])
 
-        users = UserService.get_all_user_emails()
-        id_to_email = {u["id"]: u["email"] for u in users}
+        player_ids = [a.get("player_id") for a in data if a.get("player_id") is not None]
+        id_to_email = {u["id"]: u["email"] for u in UserService.get_user_emails_by_ids(player_ids)}
 
         for attempt in data:
             player_id = attempt.get("player_id")

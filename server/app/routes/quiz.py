@@ -95,8 +95,8 @@ def get_approved_quizzes():
             quizzes = QuizService.get_approved_quizzes_from_quizService()
             QuizCache.set("approved_quizzes", quizzes)
 
-        users = UserService.get_all_user_emails()
-        id_to_email = {user["id"]: user["email"] for user in users}
+        author_ids = [q.get("author_id") for q in quizzes["data"] if q.get("author_id") is not None]
+        id_to_email = {u["id"]: u["email"] for u in UserService.get_user_emails_by_ids(author_ids)}
 
         for quiz in quizzes["data"]:
             author_id = quiz.get("author_id", None)
@@ -120,8 +120,8 @@ def get_pending_quizzes():
             quizzes = QuizService.get_pending_quizzes_from_quizService()
             QuizCache.set("pending_quizzes", quizzes)
 
-        users = UserService.get_all_user_emails()
-        id_to_email = {user["id"]: user["email"] for user in users}
+        author_ids = [q.get("author_id") for q in quizzes["data"] if q.get("author_id") is not None]
+        id_to_email = {u["id"]: u["email"] for u in UserService.get_user_emails_by_ids(author_ids)}
 
         for quiz in quizzes["data"]:
             author_id = quiz.get("author_id", None)
@@ -155,8 +155,8 @@ def get_catalog():
             data = catalog.get("data") or {}
             items = data.get("items") or []
 
-            users = UserService.get_all_user_emails()
-            id_to_email = {u["id"]: u["email"] for u in users}
+            author_ids = [q.get("author_id") for q in items if q.get("author_id") is not None]
+            id_to_email = {u["id"]: u["email"] for u in UserService.get_user_emails_by_ids(author_ids)}
 
             for quiz in items:
                 author_id = quiz.get("author_id")
