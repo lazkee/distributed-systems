@@ -3,6 +3,7 @@ from flask import Flask, jsonify
 from werkzeug.exceptions import HTTPException
 from .config import Config
 from .extensions import db, jwt
+from .scheduler import start_scheduler
 
 from app.routes.quiz import quiz_bp
 from app.routes.quiz_execution import quiz_execution_bp
@@ -35,5 +36,7 @@ def create_app():
     app.register_blueprint(quiz_admin_bp)
     app.register_blueprint(quiz_moderator_bp)
     app.register_blueprint(quiz_leaderboard_bp)
+
+    start_scheduler(app)
 
     return app

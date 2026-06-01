@@ -1,3 +1,6 @@
+from datetime import datetime, timedelta
+
+from app.extensions import db
 from app.models.quiz_attempts import QuizAttempt
 from app.constants.attempt_status import AttemptStatus
 
@@ -63,6 +66,25 @@ class AttemptsService:
             .all()
         )
         return [row.player_id for row in rows]
+
+    @staticmethod
+    def cleanup_old_attempts(retention_days: int) -> int:
+        cutoff = datetime.utcnow() - timedelta(days=retention_days)
+        try:
+            deleted = (
+                QuizAttempt.query
+                .filter(
+                    QuizAttempt.status == AttemptStatus.PROCESSED.value,
+                    QuizAttempt.finished_at.isnot(None),
+                    QuizAttempt.finished_at < cutoff,
+                )
+                .delete(synchronize_session=False)
+            )
+            db.session.commit()
+            return deleted
+        except Exception:
+            db.session.rollback()
+            raise
 
     @staticmethod
     def erase_user_attempt_data(user_id: int) -> dict:

@@ -31,3 +31,6 @@ class Config:
     MAILJET_FROM_EMAIL = os.getenv("MAILJET_FROM_EMAIL")
     MAILJET_FROM_NAME = os.getenv("MAILJET_FROM_NAME")
     MAILJET_URL = os.getenv("MAILJET_URL")
+
+    QUIZ_ATTEMPT_RETENTION_DAYS = int(os.getenv("QUIZ_ATTEMPT_RETENTION_DAYS", "730"))
+    ENABLE_RETENTION_JOBS = os.getenv("ENABLE_RETENTION_JOBS", "false").lower() == "true"
