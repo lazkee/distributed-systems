@@ -76,3 +76,17 @@ class UserService:
     def get_all_user_emails() -> list[dict]:
         users = User.query.all()
         return [{"id": user.id, "email": user.email} for user in users]
+
+    @staticmethod
+    def get_user_emails_by_ids(user_ids: list[int]) -> list[dict]:
+        cleaned = []
+        for uid in user_ids:
+            try:
+                cleaned.append(int(uid))
+            except (TypeError, ValueError):
+                pass
+        cleaned = list(set(cleaned))
+        if not cleaned:
+            return []
+        users = User.query.filter(User.id.in_(cleaned)).all()
+        return [{"id": user.id, "email": user.email} for user in users]

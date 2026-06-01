@@ -44,7 +44,6 @@ def create_app():
         frame_options="DENY",
         referrer_policy="strict-origin-when-cross-origin",
         content_security_policy=_CSP,
-        content_type_options=True,
         session_cookie_secure=is_secure,
         session_cookie_samesite="Lax",
     )

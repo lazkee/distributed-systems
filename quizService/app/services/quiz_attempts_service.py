@@ -28,3 +28,17 @@ class AttemptsService:
             }
             for attempt in attempts
         ]
+
+    @staticmethod
+    def get_player_ids_for_quizzes(quiz_ids: list[int]) -> list[int]:
+        rows = (
+            QuizAttempt.query
+            .filter(
+                QuizAttempt.quiz_id.in_(quiz_ids),
+                QuizAttempt.status == AttemptStatus.PROCESSED.value
+            )
+            .with_entities(QuizAttempt.player_id)
+            .distinct()
+            .all()
+        )
+        return [row.player_id for row in rows]

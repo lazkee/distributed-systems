@@ -71,21 +71,27 @@ def generate_report():
     claims = get_jwt()
     admin_email = claims.get("email")
 
-    data = request.get_json()
-    quiz_ids = data["quiz_ids"]
-
-    users = UserService.get_all_user_emails()
+    data = request.get_json(silent=True) or {}
+    quiz_ids = data.get("quiz_ids")
 
     if not quiz_ids or not isinstance(quiz_ids, list):
-        return jsonify({"success": False, "message": "quiz_ids must be a list"}), 400
-    
-    if not users or not isinstance(users, list):
-        return jsonify({"success": False, "message": "users must be a list"}), 400
+        return jsonify({"success": False, "message": "quiz_ids must be a non-empty list"}), 400
+
+    try:
+        player_ids = AdminService.get_report_player_ids(quiz_ids)
+    except ValueError:
+        return jsonify({"success": False, "message": "One or more quiz IDs are invalid or not approved"}), 400
+    except RuntimeError:
+        return jsonify({"success": False, "message": "Could not retrieve player IDs for report"}), 503
+
+    users = UserService.get_user_emails_by_ids(player_ids)
 
     try:
         response = AdminService.generate_report(quiz_ids, admin_email, users)
     except ValueError:
         return jsonify({"success": False, "message": "One or more quiz IDs are invalid or not approved"}), 400
+    except RuntimeError:
+        return jsonify({"success": False, "message": "Report generation could not be completed"}), 503
 
     return jsonify({
         "success": True,

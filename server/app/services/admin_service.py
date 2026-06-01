@@ -68,6 +68,21 @@ class AdminService:
         return True
     
     @staticmethod
+    def get_report_player_ids(quiz_ids: list[int]) -> list[int]:
+        url = f"{Config.QUIZ_SERVICE_BASE_URL}/quiz-mail/reports/player-ids"
+        payload = {"quiz_ids": quiz_ids}
+        response = requests.post(url, json=payload, headers=make_internal_headers(), timeout=10)
+
+        if response.status_code == 400:
+            message = response.json().get("message", "Invalid quiz IDs for report")
+            raise ValueError(message)
+
+        if response.status_code != 200:
+            raise RuntimeError("Quiz service player ID lookup failed")
+
+        return response.json()["data"]["player_ids"]
+
+    @staticmethod
     def generate_report(quiz_ids: list[int], admin_email: str, users: list[dict]):
         url = f"{Config.QUIZ_SERVICE_BASE_URL}/quiz-mail/reports"
 

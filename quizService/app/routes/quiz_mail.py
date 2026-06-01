@@ -39,3 +39,22 @@ def generate_report():
     return jsonify({
         "message": "Reports generation started, check your mailbox"
     }), 202
+
+
+@quiz_mail_bp.route("/reports/player-ids", methods=["POST"])
+@require_internal
+def get_report_player_ids():
+    data = request.get_json()
+    quiz_ids = data.get("quiz_ids")
+
+    try:
+        QuizService.validate_approved_quiz_ids(quiz_ids)
+    except ValueError as e:
+        return jsonify({"success": False, "message": str(e)}), 400
+
+    player_ids = AttemptsService.get_player_ids_for_quizzes(quiz_ids)
+
+    return jsonify({
+        "success": True,
+        "data": {"player_ids": player_ids}
+    }), 200
