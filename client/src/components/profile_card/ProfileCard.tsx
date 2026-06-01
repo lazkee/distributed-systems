@@ -22,6 +22,8 @@ export function ProfileCard({
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [loadingPicture, setLoadingPicture] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [exportingData, setExportingData] = useState(false);
+  const [exportError, setExportError] = useState<string>("");
   const [error, setError] = useState<string>("");
   const [errors, setErrors] = useState<Partial<Record<keyof ProfileFormState, string>>>({});
 
@@ -88,6 +90,24 @@ export function ProfileCard({
     } finally {
       setLoadingPicture(false);
     }
+  };
+
+  const handleExportData = async () => {
+    setExportingData(true);
+    setExportError("");
+    const res = await usersApi.exportMyData();
+    setExportingData(false);
+    if (!res.success || !res.data) {
+      setExportError(res.message || "Export failed");
+      return;
+    }
+    const blob = new Blob([JSON.stringify(res.data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = "my-data-export.json";
+    anchor.click();
+    URL.revokeObjectURL(url);
   };
 
   const handleSave = async () => {
@@ -199,6 +219,10 @@ export function ProfileCard({
         </div>
       </div>
 
+      {exportError && (
+        <p className="text-red-500 text-sm mt-3">{exportError}</p>
+      )}
+
       <div className="flex gap-2 justify-center mt-4">
         <button
           disabled={!hasChanges || saving}
@@ -206,6 +230,14 @@ export function ProfileCard({
           className={`px-4 py-2 rounded-lg font-medium shadow-md hover:shadow-lg transition-all duration-200 min-w-[120px] ${!hasChanges || saving ? "bg-gray-500 cursor-not-allowed text-gray-200" : "bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer"}`}
         >
           {saving ? "Saving..." : "Save"}
+        </button>
+
+        <button
+          disabled={exportingData}
+          onClick={handleExportData}
+          className={`px-4 py-2 rounded-lg font-medium shadow-md hover:shadow-lg transition-all duration-200 min-w-[120px] ${exportingData ? "bg-gray-500 cursor-not-allowed text-gray-200" : "bg-blue-700 hover:bg-blue-600 text-white cursor-pointer"}`}
+        >
+          {exportingData ? "Exporting..." : "Export my data"}
         </button>
 
         <button
