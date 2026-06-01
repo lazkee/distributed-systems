@@ -2,7 +2,8 @@ from flask import Blueprint, jsonify, request
 
 from app.middlewares.require_internal import require_internal
 from app.validators.reject_quiz_validator import validate_reject_quiz
-from  app.services.quiz_admin_service import QuizAdminService
+from app.services.quiz_admin_service import QuizAdminService
+from app.logging_config import audit_log, get_request_ip
 
 quiz_admin_bp = Blueprint("quiz_admin", __name__, url_prefix="/quiz")
 
@@ -46,9 +47,15 @@ def get_quiz_for_admin(quiz_id: int):
 @quiz_admin_bp.route("/admin/<int:quiz_id>/approve", methods=["PUT"])
 @require_internal
 def approve_quiz(quiz_id: int):
+    _uid = request.headers.get("X-User-Id")
+    try:
+        requester_id = int(_uid) if _uid else None
+    except (ValueError, TypeError):
+        requester_id = None
+
     try:
         result = QuizAdminService.approve_quiz(quiz_id)
-
+        audit_log.info("quiz_approved", quiz_id=quiz_id, requester_id=requester_id, ip=get_request_ip())
         return jsonify({
             "success": True,
             "message": "Quiz approved successfully",
@@ -65,6 +72,12 @@ def approve_quiz(quiz_id: int):
 @quiz_admin_bp.route("/admin/<int:quiz_id>/reject", methods=["PUT"])
 @require_internal
 def reject_quiz(quiz_id: int):
+    _uid = request.headers.get("X-User-Id")
+    try:
+        requester_id = int(_uid) if _uid else None
+    except (ValueError, TypeError):
+        requester_id = None
+
     payload = request.get_json(silent=True)
 
     validation = validate_reject_quiz(payload)
@@ -77,7 +90,13 @@ def reject_quiz(quiz_id: int):
 
     try:
         result = QuizAdminService.reject_quiz(quiz_id, validation.data["comment"])
-
+        audit_log.info(
+            "quiz_rejected",
+            quiz_id=quiz_id,
+            requester_id=requester_id,
+            author_id=result.get("author_id"),
+            ip=get_request_ip(),
+        )
         return jsonify({
             "success": True,
             "message": "Quiz rejected successfully",
@@ -114,6 +133,13 @@ def delete_quiz(quiz_id):
         if not result["success"]:
             return jsonify(result), 404
 
+        audit_log.info(
+            "quiz_deleted",
+            quiz_id=quiz_id,
+            requester_id=requester_id,
+            requester_role=role_header,
+            ip=get_request_ip(),
+        )
         return jsonify(result), 200
 
     except PermissionError:

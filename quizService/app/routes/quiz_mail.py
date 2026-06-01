@@ -1,6 +1,7 @@
 from multiprocessing import Process
 from flask import Blueprint, jsonify, request
 from app.middlewares.require_internal import require_internal
+from app.logging_config import audit_log, get_request_ip
 from ..services.quiz_mail_service import QuizMailService
 from ..services.quiz_pdf_service import PDFService
 from ..services.quiz_service import QuizService
@@ -33,9 +34,13 @@ def generate_report():
 
     pdf_bytes = PDFService.generate_report(quizzes, users, attempts)
 
-    Process(target=QuizMailService.send_email_pdf, args=(current_user_email, pdf_bytes,[q["title"] for q in quizzes])).start()
+    Process(target=QuizMailService.send_email_pdf, args=(current_user_email, pdf_bytes, [q["title"] for q in quizzes])).start()
 
-
+    audit_log.info(
+        "report_generation_requested",
+        quiz_count=len(quiz_ids),
+        ip=get_request_ip(),
+    )
     return jsonify({
         "message": "Reports generation started, check your mailbox"
     }), 202
@@ -53,6 +58,7 @@ def get_report_player_ids():
         return jsonify({"success": False, "message": str(e)}), 400
 
     player_ids = AttemptsService.get_player_ids_for_quizzes(quiz_ids)
+    audit_log.info("report_player_ids_requested", quiz_ids=quiz_ids, ip=get_request_ip())
 
     return jsonify({
         "success": True,

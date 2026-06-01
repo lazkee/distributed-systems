@@ -4,6 +4,7 @@ from app.middlewares.require_internal import require_internal
 from app.validators.create_quiz_validator import validate_create_quiz
 from app.validators.edit_quiz_validator import validate_edit_quiz
 from app.services.quiz_moderator_service import QuizModeratorService
+from app.logging_config import audit_log, get_request_ip
 
 quiz_moderator_bp = Blueprint("quiz_moderator", __name__, url_prefix="/quiz")
 
@@ -34,6 +35,13 @@ def create_quiz():
 
     try:
         result = QuizModeratorService.create_quiz(validation.data)
+        audit_log.info(
+            "quiz_created",
+            quiz_id=result["quiz_id"],
+            author_id=result["author_id"],
+            requester_id=requester_id,
+            ip=get_request_ip(),
+        )
         return jsonify({
             "success": True,
             "data": result
@@ -128,6 +136,12 @@ def edit_quiz(quiz_id: int):
 
     try:
         result = QuizModeratorService.edit_quiz(quiz_id, payload, requester_id)
+        audit_log.info(
+            "quiz_edited",
+            quiz_id=result["quiz_id"],
+            requester_id=requester_id,
+            ip=get_request_ip(),
+        )
         return jsonify({
             "success": True,
             "message": "Quiz updated successfully",

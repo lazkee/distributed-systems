@@ -1,7 +1,6 @@
-import logging
 import os
 
-logger = logging.getLogger(__name__)
+from app.logging_config import audit_log
 
 
 def start_scheduler(app):
@@ -21,15 +20,15 @@ def start_scheduler(app):
         with app.app_context():
             try:
                 deleted = AttemptsService.cleanup_old_attempts(retention_days)
-                logger.info(
-                    "Retention cleanup: deleted %d quiz attempt(s) older than %d days",
-                    deleted,
-                    retention_days,
+                audit_log.info(
+                    "retention_cleanup_completed",
+                    deleted=deleted,
+                    retention_days=retention_days,
                 )
             except Exception:
-                logger.exception("Retention cleanup failed")
+                audit_log.warning("retention_cleanup_failed", retention_days=retention_days)
 
     scheduler = BackgroundScheduler()
     scheduler.add_job(_run_cleanup, "cron", hour=2, minute=0)
     scheduler.start()
-    logger.info("Retention scheduler started (runs daily at 02:00 UTC)")
+    audit_log.info("retention_scheduler_started", schedule="daily at 02:00 UTC")

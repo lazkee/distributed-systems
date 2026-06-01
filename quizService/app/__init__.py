@@ -11,8 +11,10 @@ from app.routes.quiz_mail import quiz_mail_bp
 from app.routes.quiz_admin import quiz_admin_bp
 from app.routes.quiz_moderator import quiz_moderator_bp
 from app.routes.quiz_leaderboard import quiz_leaderboard_bp
+from app.logging_config import configure_logging
 
 def create_app():
+    configure_logging()
     app = Flask(__name__)
     app.config.from_object(Config)
 

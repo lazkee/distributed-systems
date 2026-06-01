@@ -4,6 +4,7 @@ from app.middlewares.require_internal import require_internal
 from app.cache.quiz_execution_cache import QuizExecutionCache
 from app.services.quiz_execution_service import QuizExecutionService
 from app.services.quiz_attempts_service import AttemptsService
+from app.logging_config import audit_log, get_request_ip
 
 quiz_execution_bp = Blueprint(
     "quiz_execution",
@@ -23,6 +24,7 @@ def export_user_attempts(user_id: int):
         return jsonify({"success": False, "message": "Forbidden"}), 403
 
     attempts = AttemptsService.get_attempts_for_user_export(user_id)
+    audit_log.info("user_attempts_exported", user_id=user_id, count=len(attempts), ip=get_request_ip())
     return jsonify({"success": True, "data": attempts}), 200
 
 
@@ -37,6 +39,7 @@ def erase_user_data(user_id: int):
         return jsonify({"success": False, "message": "Forbidden"}), 403
 
     result = AttemptsService.erase_user_attempt_data(user_id)
+    audit_log.info("user_attempt_data_erased", user_id=user_id, ip=get_request_ip())
     return jsonify(result), 200
 
 
@@ -54,6 +57,13 @@ def start_quiz():
         status = 409 if "active attempt" in str(e).lower() else 400
         return jsonify({"success": False, "message": str(e)}), status
 
+    audit_log.info(
+        "quiz_attempt_started",
+        quiz_id=attempt["quiz_id"],
+        player_id=int(data.get("player_id")),
+        attempt_id=attempt["attempt_id"],
+        ip=get_request_ip(),
+    )
     return jsonify({
         "success": True,
         "message": "Quiz started successfully",
@@ -82,6 +92,12 @@ def submit_answer():
             player_id=player_id
         )
     except PermissionError:
+        audit_log.warning(
+            "quiz_answer_submit_forbidden",
+            attempt_id=data.get("attempt_id"),
+            player_id=player_id,
+            ip=get_request_ip(),
+        )
         return jsonify({"success": False, "message": "Forbidden"}), 403
     except ValueError as e:
         return jsonify({"success": False, "message": str(e)}), 400
@@ -97,6 +113,7 @@ def finish_quiz_background(attempt_id, player_email, player_id, app):
     with app.app_context():
         try:
             QuizExecutionService.finish_quiz(int(attempt_id), player_email, player_id)
+            audit_log.info("quiz_attempt_finished", attempt_id=int(attempt_id), player_id=player_id)
         except Exception:
             app.logger.exception(f"Error finishing quiz {attempt_id}")
 
@@ -128,6 +145,12 @@ def finish_quiz():
     if not session:
         return jsonify({"success": False, "message": "Quiz attempt not found or expired"}), 404
     if session["player_id"] != player_id:
+        audit_log.warning(
+            "quiz_finish_forbidden",
+            attempt_id=int(attempt_id),
+            player_id=player_id,
+            ip=get_request_ip(),
+        )
         return jsonify({"success": False, "message": "Forbidden"}), 403
 
     app = current_app._get_current_object()
