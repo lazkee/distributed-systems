@@ -1,9 +1,10 @@
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import get_jwt
+from flask_jwt_extended import get_jwt, get_jwt_identity
 from app.middlewares.require_role import require_role
 from app.constants.user_roles import UserRole
 from app.services.admin_service import AdminService
 from app.services.user_service import UserService
+from app.logging_config import audit_log, get_request_ip
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 
@@ -39,6 +40,13 @@ def change_role():
 
     try:
         user = AdminService.change_user_role(user_id, new_role)
+        audit_log.info(
+            "admin_role_change",
+            admin_id=int(get_jwt_identity()),
+            target_user_id=user_id,
+            new_role=new_role.value,
+            ip=get_request_ip(),
+        )
         return jsonify({
             "success": True,
             "message": f"User role updated to {new_role.value}",
@@ -61,6 +69,12 @@ def delete_user(user_id: int):
             "message": "User not found"
         }), 404
 
+    audit_log.info(
+        "admin_user_deleted",
+        admin_id=int(get_jwt_identity()),
+        target_user_id=user_id,
+        ip=get_request_ip(),
+    )
     return jsonify({
         "success": True,
         "message": "User deleted"
@@ -94,6 +108,12 @@ def generate_report():
     except RuntimeError:
         return jsonify({"success": False, "message": "Report generation could not be completed"}), 503
 
+    audit_log.info(
+        "admin_report_requested",
+        admin_id=int(get_jwt_identity()),
+        quiz_ids=quiz_ids,
+        ip=get_request_ip(),
+    )
     return jsonify({
         "success": True,
         "message": response.get("message", "Report generation started")

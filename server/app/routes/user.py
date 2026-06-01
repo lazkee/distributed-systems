@@ -7,6 +7,7 @@ from app.middlewares.require_auth import require_auth
 from app.services.user_service import UserService
 from app.services.cloudinary_service import CloudinaryService
 from app.validators.user_validator import validate_patch_me
+from app.logging_config import audit_log, get_request_ip
 
 
 user_bp = Blueprint("user", __name__, url_prefix="/users")
@@ -53,6 +54,8 @@ def erase_me():
     user_id = int(get_jwt_identity())
     result = UserService.erase_my_account(user_id)
     status = result.pop("status", 200)
+    if status == 200:
+        audit_log.info("user_account_erased", user_id=user_id, ip=get_request_ip())
     return jsonify(result), status
 
 
@@ -60,6 +63,7 @@ def erase_me():
 @require_auth
 def export_my_data():
     user_id = int(get_jwt_identity())
+    audit_log.info("user_data_export", user_id=user_id, ip=get_request_ip())
     result = UserService.export_my_data(user_id)
     status = result.pop("status", 200)
     return jsonify(result), status

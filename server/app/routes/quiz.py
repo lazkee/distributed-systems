@@ -10,6 +10,7 @@ from app.utils.internal_headers import make_internal_headers
 from app.services.quiz_service import QuizService
 from app.services.user_service import UserService
 from app.cache.quiz_cache import QuizCache
+from app.logging_config import audit_log, get_request_ip
 
 quiz_bp = Blueprint("quiz", __name__, url_prefix="/quiz")
 
@@ -208,6 +209,8 @@ def approve_quiz(quiz_id):
         )
 
         QuizCache.clear()
+        if response.ok:
+            audit_log.info("quiz_approved", admin_id=int(get_jwt_identity()), quiz_id=quiz_id, ip=get_request_ip())
 
         return jsonify(response.json()), response.status_code
 
@@ -254,6 +257,8 @@ def reject_quiz(quiz_id):
                 },
                 room=f"user_{author_id}"
             )
+        if response.ok:
+            audit_log.info("quiz_rejected_by_admin", admin_id=int(get_jwt_identity()), quiz_id=quiz_id, ip=get_request_ip())
         return jsonify(response.json()), response.status_code
 
     except requests.RequestException:
@@ -285,6 +290,8 @@ def delete_quiz(quiz_id):
             }
 
         QuizCache.clear()
+        if response.ok:
+            audit_log.info("quiz_deleted", user_id=int(get_jwt_identity()), quiz_id=quiz_id, ip=get_request_ip())
 
         return jsonify(data), response.status_code
 

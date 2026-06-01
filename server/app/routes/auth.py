@@ -9,6 +9,7 @@ from app.extensions import limiter
 from app.services.auth_service import AuthService
 from app.services import jwt_blocklist_service
 from app.models.user import User
+from app.logging_config import audit_log, get_request_ip, get_user_agent
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
@@ -25,6 +26,7 @@ def register():
     except ValueError as e:
         return jsonify({"success": False, "message": str(e)}), 400
 
+    audit_log.info("user_registered", user_id=tokens["user_id"], ip=get_request_ip())
     response = jsonify({"success": True, "message": "User registered successfully"})
     set_access_cookies(response, tokens["access_token"])
     set_refresh_cookies(response, tokens["refresh_token"])
@@ -42,8 +44,10 @@ def login():
     )
 
     if not result.get("data"):
+        audit_log.warning("login_failed", ip=get_request_ip(), user_agent=get_user_agent())
         return jsonify({"success": result["success"], "message": result["message"]}), result["status"]
 
+    audit_log.info("user_logged_in", user_id=result["user_id"], ip=get_request_ip(), user_agent=get_user_agent())
     response = jsonify({"success": True, "message": "Login successful"})
     set_access_cookies(response, result["data"]["access_token"])
     set_refresh_cookies(response, result["data"]["refresh_token"])
@@ -76,6 +80,7 @@ def logout():
     except Exception:
         return jsonify({"success": False, "message": "Logout failed"}), 503
 
+    audit_log.info("user_logged_out", user_id=get_jwt_identity(), ip=get_request_ip())
     response = jsonify({"success": True, "message": "Logged out successfully"})
     unset_access_cookies(response)
     return response, 200
@@ -111,6 +116,7 @@ def logout_refresh():
     except Exception:
         return jsonify({"success": False, "message": "Logout failed"}), 503
 
+    audit_log.info("refresh_token_revoked", user_id=get_jwt_identity(), ip=get_request_ip())
     response = jsonify({"success": True, "message": "Refresh token revoked successfully"})
     unset_refresh_cookies(response)
     return response, 200

@@ -37,7 +37,7 @@ class AuthService:
             additional_claims=claims
         )
 
-        return {"access_token": access_token, "refresh_token": refresh_token}
+        return {"access_token": access_token, "refresh_token": refresh_token, "user_id": user.id}
 
 
     @staticmethod
@@ -97,5 +97,6 @@ class AuthService:
             "success": True,
             "message": "Login successful",
             "data": {"access_token": access_token, "refresh_token": refresh_token},
+            "user_id": user.id,
             "status": 200
         }
