@@ -105,8 +105,17 @@ def _make_truncated_jpeg() -> io.BytesIO:
 # ---------------------------------------------------------------------------
 
 class _FakeUser:
-    profile_picture_url       = None
-    profile_picture_public_id = None
+    def __init__(self):
+        self.profile_picture_url = None
+        self.profile_picture_public_id = None
+
+
+_VALID_UPLOAD_RESPONSE = {
+    "secure_url": "https://res.cloudinary.com/demo/image/upload/v1/drs_profile_pictures/user_1.jpg",
+    "public_id": "drs_profile_pictures/user_1",
+    "resource_type": "image",
+    "format": "jpg",
+}
 
 
 @pytest.fixture(autouse=True)
@@ -115,9 +124,28 @@ def reset_mocks():
     _db.reset_mock()
     _UserMock.reset_mock()
     _upload.reset_mock()
+    _upload.return_value = dict(_VALID_UPLOAD_RESPONSE)
     # Default: user exists — so validation tests reach _validate_and_sanitize
     _UserMock.query.get.return_value = _FakeUser()
     yield
+
+
+def _assert_invalid_upload_response_rejected(upload_response: dict):
+    existing_url = "https://res.cloudinary.com/demo/image/upload/v1/existing.jpg"
+    existing_public_id = "drs_profile_pictures/existing"
+    user = _FakeUser()
+    user.profile_picture_url = existing_url
+    user.profile_picture_public_id = existing_public_id
+    _UserMock.query.get.return_value = user
+    _upload.return_value = upload_response
+
+    with pytest.raises(ValueError, match="Invalid image storage response"):
+        CloudinaryService.upload_profile_picture(user_id=1, image=_make_image_bytes("JPEG"))
+
+    _upload.assert_called_once()
+    _db.session.commit.assert_not_called()
+    assert user.profile_picture_url == existing_url
+    assert user.profile_picture_public_id == existing_public_id
 
 
 # ---------------------------------------------------------------------------
@@ -240,3 +268,51 @@ class TestMissingUserRejected:
         with pytest.raises(ValueError):
             CloudinaryService.upload_profile_picture(user_id=999, image=_make_image_bytes("JPEG"))
         _db.session.commit.assert_not_called()
+
+
+# ---------------------------------------------------------------------------
+# 6. Invalid external image-storage response
+# ---------------------------------------------------------------------------
+
+class TestExternalUploadResponseValidation:
+
+    def test_valid_external_response_is_accepted(self):
+        user = _FakeUser()
+        _UserMock.query.get.return_value = user
+
+        result = CloudinaryService.upload_profile_picture(user_id=1, image=_make_image_bytes("JPEG"))
+
+        assert result == {"url": _VALID_UPLOAD_RESPONSE["secure_url"]}
+        assert user.profile_picture_url == _VALID_UPLOAD_RESPONSE["secure_url"]
+        assert user.profile_picture_public_id == _VALID_UPLOAD_RESPONSE["public_id"]
+        _db.session.commit.assert_called_once()
+
+    def test_missing_secure_url_rejected(self):
+        response = dict(_VALID_UPLOAD_RESPONSE)
+        response.pop("secure_url")
+
+        _assert_invalid_upload_response_rejected(response)
+
+    def test_non_https_secure_url_rejected(self):
+        response = dict(_VALID_UPLOAD_RESPONSE)
+        response["secure_url"] = "http://res.cloudinary.com/demo/image/upload/v1/user_1.jpg"
+
+        _assert_invalid_upload_response_rejected(response)
+
+    def test_missing_public_id_rejected(self):
+        response = dict(_VALID_UPLOAD_RESPONSE)
+        response.pop("public_id")
+
+        _assert_invalid_upload_response_rejected(response)
+
+    def test_invalid_resource_type_rejected(self):
+        response = dict(_VALID_UPLOAD_RESPONSE)
+        response["resource_type"] = "raw"
+
+        _assert_invalid_upload_response_rejected(response)
+
+    def test_invalid_format_rejected(self):
+        response = dict(_VALID_UPLOAD_RESPONSE)
+        response["format"] = "svg"
+
+        _assert_invalid_upload_response_rejected(response)
